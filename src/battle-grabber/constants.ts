@@ -10,7 +10,7 @@ export const VISIBLE_CAPTURE_LOG_LIMIT = 240;
 export const MIN_ALLIANCE_LINEUP_BATTLES = 2;
 
 // ── 阵容质量阈值（终审口径，唯一定义处）──
-// 依据 docs/胜率统计逻辑说明_20260803.md §4.2 阵容过滤（2026-08-03 用户制定）：
+// 依据 docs/STATISTICS.md「阵容过滤」章节（终审口径）：
 // 兵力 >= 5000 且所有武将 level >= 46；兵力 <= 100 的是武将数（假兵力），跳过。
 /** 阵容统计要求所有武将的最低等级 */
 export const MIN_ALLIANCE_HERO_LEVEL = 46;

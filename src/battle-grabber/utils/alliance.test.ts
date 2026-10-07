@@ -1,12 +1,10 @@
 /**
  * alliance.ts 核心解析逻辑测试（战报胜负判定 / 阵容识别 / 阵容质量校验）。
  *
- * fixture 依据 docs/胜率统计逻辑说明_20260803.md §4.3 的真实字段结构构造
+ * fixture 依据 docs/STATISTICS.md 描述的真实字段结构构造
  * （battle-grabber-v6 的 alliance_battles.jsonl：battleId/recordType/winnerSide/
  * attacker{player,armyId,heroes,totals{armyTroops}}/defender{...}），
- * 玩家名取自文档实证案例（玉门关「无名客」vs 乱世「孤影」/「长歌」）。
- * 注：仓库 runtime-captures/ 下现存的是 frida 采集事件日志（events.jsonl），
- * 无同盟战报 jsonl 原始样本，故 fixture 按终审文档的字段规格还原真实记录形态。
+ * 名称均为脱敏后的虚构样本。
  * 断言基准 = 终审口径（平局计半胜；阵容过滤：满编 3 将、level>=46、兵力>=5000、
  * 兵力<=100 为假兵力需跳过）。
  */

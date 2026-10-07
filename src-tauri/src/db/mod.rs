@@ -2241,7 +2241,7 @@ mod tests {
                                 }],
                                 "legionGroups": [{
                                     "legionId": 6,
-                                    "legionName": "最团",
+                                    "legionName": "青锋营",
                                     "memberCount": 64,
                                     "observedAt": "2026-08-01T10:00:00+08:00"
                                 }]
@@ -2283,7 +2283,7 @@ mod tests {
             )
             .expect("second capture");
 
-        // 验证：两行成员的 legion_name 都应为「最团」（第二次被历史映射兜底补齐）
+        // 验证：两行成员的 legion_name 都应为「青锋营」（第二次被历史映射兜底补齐）
         let connection = database.conn();
         let legion_names: Vec<String> = connection
             .prepare(
@@ -2296,8 +2296,8 @@ mod tests {
             .collect::<Result<Vec<_>, _>>()
             .expect("collect names");
         assert_eq!(legion_names.len(), 2, "应有两行成员快照");
-        assert_eq!(legion_names[0], "最团", "第一次采集成员分组应来自 legionGroups");
-        assert_eq!(legion_names[1], "最团", "第二次采集成员分组应被历史映射兜底补齐");
+        assert_eq!(legion_names[0], "青锋营", "第一次采集成员分组应来自 legionGroups");
+        assert_eq!(legion_names[1], "青锋营", "第二次采集成员分组应被历史映射兜底补齐");
 
         let _ = fs::remove_dir_all(temp_dir);
     }
