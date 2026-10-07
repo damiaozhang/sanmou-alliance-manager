@@ -45,8 +45,15 @@ To build the bundled Frida bridge you additionally need `pyinstaller` and `frida
 
 ```bash
 npm install
+python -m pip install pyinstaller frida   # required once: builds the bundled bridge
+npm run bridge:build
 npm run tauri dev
 ```
+
+> `src-tauri/assets/frida_bridge.exe` is not committed (~50 MB). Because Tauri
+> validates every `bundle.resources` entry at compile time, `tauri dev`,
+> `tauri build` and `cargo test` all fail until `npm run bridge:build` has run
+> once — see [Building the Frida bridge](#building-the-frida-bridge).
 
 Only want the UI (mock data, no Rust backend)?
 

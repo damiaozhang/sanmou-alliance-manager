@@ -39,6 +39,15 @@ npm install
 
 `npm install` 会安装所有前端依赖和 Tauri CLI。
 
+> ⚠️ **首次编译前必须先构建 bridge**：`src-tauri/assets/frida_bridge.exe` 是约 50MB 的
+> PyInstaller 产物，不入库。`tauri-build` 会校验 `bundle.resources` 中每个路径是否存在，
+> 缺文件会导致 `tauri dev` / `tauri build` / `cargo test` 一律编译失败。
+>
+> ```bash
+> python -m pip install pyinstaller frida
+> npm run bridge:build
+> ```
+
 ## 开发工作流
 
 ### 启动开发模式
@@ -102,8 +111,8 @@ npm run tauri build
 ```
 
 构建产物：
-- `src-tauri/target/release/bundle/nsis/sanmou-alliance-manager_0.1.0_x64-setup.exe`
-- `src-tauri/target/release/bundle/nsis/sanmou-alliance-manager_0.1.0_x64-setup.exe.sig` (如果启用签名)
+- `src-tauri/target/release/bundle/nsis/Sanmou Ledger_<version>_x64-setup.exe`
+- `src-tauri/target/release/bundle/nsis/Sanmou Ledger_<version>_x64-setup.exe.sig` (启用 updater 签名时)
 
 ### 构建 Frida Bridge
 

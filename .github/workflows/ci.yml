@@ -43,6 +43,14 @@ jobs:
         with:
           python-version: '3.11'
       - uses: dtolnay/rust-toolchain@stable
+      # tauri-build 会校验 bundle.resources 里每个路径是否存在；frida_bridge.exe
+      # 约 50MB 且不入库，此处生成空占位文件让编译期资源清单解析通过。
+      # 测试不依赖该二进制（运行期优先取 exe，取不到则回退 frida_bridge.py）。
+      - name: Provide placeholder for the non-committed bridge resource
+        shell: pwsh
+        run: |
+          $bridge = 'src-tauri/assets/frida_bridge.exe'
+          if (-not (Test-Path $bridge)) { New-Item -ItemType File -Path $bridge -Force | Out-Null }
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
