@@ -493,13 +493,14 @@ impl Database {
         transaction.execute(
             "INSERT INTO player (avatar_id, display_name, created_at, updated_at)
              VALUES (?1, ?2, ?3, ?3)",
-            params!["100531", "一起逃避", demo_session_time],
+            // 演示载荷使用虚构玩家、同盟与战报标识，不引用实际采集记录。
+            params!["100531", "演示玩家甲", demo_session_time],
         )?;
         let player_1 = transaction.last_insert_rowid();
         transaction.execute(
             "INSERT INTO player (avatar_id, display_name, created_at, updated_at)
              VALUES (?1, ?2, ?3, ?3)",
-            params!["100532", "北境之风", demo_session_time],
+            params!["100532", "演示玩家乙", demo_session_time],
         )?;
         let player_2 = transaction.last_insert_rowid();
         transaction.execute(
@@ -620,7 +621,7 @@ impl Database {
 
         let battle_rows = vec![
             (
-                "10053199230033",
+                "demo-battle-0033",
                 "2014909",
                 0,
                 "2026-06-08T20:01:00+08:00",
@@ -628,11 +629,11 @@ impl Database {
                 4,
                 "胜",
                 "attacker_win",
-                "陌路同盟",
+                "演示敌方同盟",
                 "祝融夫人 / 孟获 / 诸葛亮",
             ),
             (
-                "10053199230034",
+                "demo-battle-0034",
                 "2014903",
                 0,
                 "2026-06-08T19:24:00+08:00",
@@ -644,7 +645,7 @@ impl Database {
                 "张辽 / 曹操 / 典韦",
             ),
             (
-                "10053199230035",
+                "demo-battle-0035",
                 "2014898",
                 0,
                 "2026-06-08T18:58:00+08:00",
@@ -676,13 +677,13 @@ impl Database {
                     row.6,
                     row.7,
                     serde_json::json!({
-                        "playerName": "一起逃避",
+                        "playerName": "演示玩家甲",
                         "allianceName": "青龙盟",
                         "lineup": row.9
                     })
                     .to_string(),
                     serde_json::json!({
-                        "playerName": "北境之风",
+                        "playerName": "演示玩家乙",
                         "allianceName": row.8,
                         "lineup": "未知"
                     })
@@ -701,15 +702,15 @@ impl Database {
 
         let lineup_rows = vec![
             (
-                "陌路同盟·祝融体系",
-                "一起逃避",
+                "演示敌方同盟·祝融体系",
+                "演示玩家甲",
                 "祝融夫人 / 孟获 / 诸葛亮",
                 "2014909",
                 "用户确认",
             ),
             (
                 "风雷盟·盾骑体系",
-                "北境之风",
+                "演示玩家乙",
                 "张辽 / 曹操 / 典韦",
                 "2014903",
                 "候选阵容",
@@ -725,8 +726,8 @@ impl Database {
                     workspace_id,
                     alliance_id,
                     match row.1 {
-                        "一起逃避" => player_1,
-                        "北境之风" => player_2,
+                        "演示玩家甲" => player_1,
+                        "演示玩家乙" => player_2,
                         _ => player_3,
                     },
                     "enemy",
@@ -741,8 +742,8 @@ impl Database {
         }
 
         let bindings = vec![
-            (player_1, "100531", "一起逃避", "青龙盟", "已绑定"),
-            (player_2, "100532", "北境之风", "陌路同盟", "待确认"),
+            (player_1, "100531", "演示玩家甲", "青龙盟", "已绑定"),
+            (player_2, "100532", "演示玩家乙", "演示敌方同盟", "待确认"),
             (player_3, "100533", "江东小乔", "青龙盟", "已绑定"),
         ];
         for row in bindings {
@@ -918,7 +919,7 @@ impl Database {
 
         let history_battle_rows = vec![
             (
-                "10053198230021",
+                "demo-battle-0021",
                 "2014809",
                 0,
                 "2026-06-01T20:08:00+08:00",
@@ -930,7 +931,7 @@ impl Database {
                 "祝融夫人 / 诸葛亮 / 孟获",
             ),
             (
-                "10053198230022",
+                "demo-battle-0022",
                 "2014803",
                 0,
                 "2026-06-01T19:21:00+08:00",
@@ -962,13 +963,13 @@ impl Database {
                     row.6,
                     row.7,
                     serde_json::json!({
-                        "playerName": "一起逃避",
+                        "playerName": "演示玩家甲",
                         "allianceName": "青龙盟",
                         "lineup": row.9
                     })
                     .to_string(),
                     serde_json::json!({
-                        "playerName": "北境之风",
+                        "playerName": "演示玩家乙",
                         "allianceName": row.8,
                         "lineup": "未知"
                     })
@@ -988,14 +989,14 @@ impl Database {
         let history_lineup_rows = vec![
             (
                 "风雷盟·先锋体系",
-                "一起逃避",
+                "演示玩家甲",
                 "祝融夫人 / 诸葛亮 / 祝融夫人",
                 "2014809",
                 "候选阵容",
             ),
             (
                 "青狼营·盾骑体系",
-                "北境之风",
+                "演示玩家乙",
                 "张辽 / 曹操 / 典韦",
                 "2014803",
                 "用户确认",
@@ -1011,8 +1012,8 @@ impl Database {
                     workspace_id,
                     alliance_id,
                     match row.1 {
-                        "一起逃避" => player_1,
-                        "北境之风" => player_2,
+                        "演示玩家甲" => player_1,
+                        "演示玩家乙" => player_2,
                         _ => player_3,
                     },
                     "enemy",
@@ -1027,8 +1028,8 @@ impl Database {
         }
 
         let history_bindings = vec![
-            (player_1, "100531", "一起逃避", "青龙盟", "待确认"),
-            (player_2, "100532", "北境之风", "陌路同盟", "待确认"),
+            (player_1, "100531", "演示玩家甲", "青龙盟", "待确认"),
+            (player_2, "100532", "演示玩家乙", "演示敌方同盟", "待确认"),
         ];
         for row in history_bindings {
             transaction.execute(
@@ -2804,9 +2805,9 @@ mod tests {
             .expect("bundle after lineup export");
 
         assert!(json_contents.contains("\"lineupProfiles\""));
-        assert!(json_contents.contains("陌路同盟·祝融体系"));
+        assert!(json_contents.contains("演示敌方同盟·祝融体系"));
         assert!(csv_contents.contains("label,player,heroes,source,confidence"));
-        assert!(csv_contents.contains("陌路同盟·祝融体系"));
+        assert!(csv_contents.contains("演示敌方同盟·祝融体系"));
         assert!(bundle_after.summary.export_job_count >= 2);
         assert!(bundle_after
             .export_jobs
@@ -3354,7 +3355,7 @@ mod tests {
         let request = |lineup_key: &str, wins: i64, notes: Option<&str>| UpsertLineupStatRequest {
             workspace_id: 1,
             avatar_id: "100531".to_string(),
-            player_name: "一起逃避".to_string(),
+            player_name: "演示玩家甲".to_string(),
             alliance_name: "青龙盟".to_string(),
             lineup_key: lineup_key.to_string(),
             label: format!("阵容{lineup_key}"),
@@ -3420,7 +3421,7 @@ mod tests {
         let input = |battle_code: &str, outcome: &str| LineupMatchupInput {
             workspace_id: 1,
             attacker_avatar_id: "100531".to_string(),
-            attacker_player_name: "一起逃避".to_string(),
+            attacker_player_name: "演示玩家甲".to_string(),
             attacker_lineup_key: "atk-k".to_string(),
             attacker_lineup_label: "祝融体系".to_string(),
             defender_avatar_id: "900001".to_string(),
@@ -4459,14 +4460,14 @@ mod tests {
                                         "payload": { "rankType": "00010006" },
                                         "entries": [
                                             { "rank": 1, "subjectKey": "10002061834", "name": "甲",
-                                              "unionName": "歌未竟", "value": 59723, "extra": { "roleId": 1 } },
+                                              "unionName": "演示同盟甲", "value": 59723, "extra": { "roleId": 1 } },
                                             { "rank": 2, "subjectKey": "10007057519", "name": "乙",
-                                              "unionName": "欧润吉", "value": 36898, "extra": {} }
+                                              "unionName": "演示同盟乙", "value": 36898, "extra": {} }
                                         ]
                                     },
                                     {
                                         "kind": "hero_rating",
-                                        "subjectKey": "70004057519",
+                                        "subjectKey": "90000004001",
                                         "subjectLabel": "本人阵容红度",
                                         "observedAt": "2026-09-20T05:14:28+08:00",
                                         "metrics": { "heroCount": 1, "fullRedCount": 1, "totalRedScore": 503 },

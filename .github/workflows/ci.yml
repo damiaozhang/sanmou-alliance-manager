@@ -119,7 +119,7 @@ jobs:
             gh release upload "v$version" @assets --clobber
           } else {
             gh release create "v$version" `
-              --title "Sanmou Ledger v$version" `
-              --notes "Sanmou Ledger v$version — Windows x64 installer (auto-built by CI)." `
+              --title "三谋同盟管理助手 v$version" `
+              --notes "三谋同盟管理助手 v$version，适用于 Windows 10/11（64 位）。下载 .exe 安装包即可使用；功能介绍与操作步骤请见仓库首页。" `
               @assets
           }

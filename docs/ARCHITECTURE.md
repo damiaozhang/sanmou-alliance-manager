@@ -1,4 +1,4 @@
-# Sanmou Ledger 系统架构
+# 三谋同盟管理助手 系统架构
 
 > Snapshot of the architecture as of the 2026-08 freeze.
 

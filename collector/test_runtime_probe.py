@@ -1,3 +1,5 @@
+"""测试载荷中的玩家、同盟、军团名称和账号 ID 均使用虚构标识。"""
+
 from __future__ import annotations
 
 import sys
@@ -195,8 +197,8 @@ class RuntimeScanDecodeEncodingTests(unittest.TestCase):
         payload = {
             "module": "Proxy.AvatarMembers.ImpUnion",
             "func": "SRPC_RPCReqUnionMemberInfoResponse",
-            "legionName": "神行奇佐",
-            "text": "商务台球俱乐部",
+            "legionName": "测试军团甲",
+            "text": "测试中文日志内容",
         }
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         with tempfile.TemporaryDirectory() as tmp:
@@ -204,8 +206,8 @@ class RuntimeScanDecodeEncodingTests(unittest.TestCase):
             bin_path.write_bytes(data)
             records = runtime_probe._records_from_lua_string_dump(bin_path)
         self.assertEqual(len(records), 1)
-        self.assertEqual(records[0]["legionName"], "神行奇佐")
-        self.assertEqual(records[0]["text"], "商务台球俱乐部")
+        self.assertEqual(records[0]["legionName"], "测试军团甲")
+        self.assertEqual(records[0]["text"], "测试中文日志内容")
         # 确保没有把 UTF-8 字节误解码成 gbk 乱码（含替换符/Private Use 区字符）。
         self.assertNotIn("�", records[0]["legionName"])
 

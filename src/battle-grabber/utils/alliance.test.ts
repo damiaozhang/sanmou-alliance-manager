@@ -44,22 +44,22 @@ function side(
 /** 构造一条贴近真实 jsonl 的同盟战报记录（字段见终审文档 §4.3）。 */
 function battleReport(partial: Partial<JsonRecord> = {}): JsonRecord {
   return {
-    battleId: "10328151540032",
+    battleId: "test-battle-001",
     recordType: "block",
-    attackAlliance: "玉门关",
-    defendAlliance: "苍梧盟",
+    attackAlliance: "测试同盟甲",
+    defendAlliance: "测试同盟乙",
     winnerSide: "attacker_win",
-    battleTime: "2026-08-03 20:15:00",
+    battleTime: "2026-01-01 12:00:00",
     attacker: side(
-      "无名客",
-      "玉门关",
+      "测试玩家甲",
+      "测试同盟甲",
       "9001",
       [hero("10101", "SP周瑜"), hero("10102", "诸葛亮"), hero("10103", "诸葛瑾")],
       18500,
     ),
     defender: side(
-      "孤影",
-      "苍梧盟",
+      "测试玩家乙",
+      "测试同盟乙",
       "9002",
       [hero("20101", "刘备"), hero("20102", "张飞"), hero("20103", "魏延")],
       17200,
@@ -111,13 +111,13 @@ describe("getAllianceSideOutcome（终审口径：winnerSide 优先，平局计�
   });
 
   it("child 子战报（中间回合）与 block 同样按 winnerSide 判定", () => {
-    // 文档实证案例：child 无名客击败长歌，随后 block 负于孤影
+    // 合成案例：child 测试玩家甲击败测试玩家丙，随后 block 负于测试玩家乙
     const child = battleReport({
       recordType: "child",
-      parentBattleId: "10328151540032",
-      battleId: "10328151540032-1",
+      parentBattleId: "test-battle-001",
+      battleId: "test-battle-001-1",
       winnerSide: "attacker_win",
-      defender: side("长歌", "苍梧盟", "9003", [hero("20104", "孙坚"), hero("20105", "左慈"), hero("20106", "田丰")], 0),
+      defender: side("测试玩家丙", "测试同盟乙", "9003", [hero("20104", "孙坚"), hero("20105", "左慈"), hero("20106", "田丰")], 0),
     });
     expect(getAllianceSideOutcome(child, "attack")).toBe("win");
   });
@@ -131,19 +131,19 @@ describe("getAllianceLineupIdentity（阵容识别）", () => {
     expect(identity!.key).toBe("formation:401|ids:10101/10102/10103");
     expect(identity!.ids).toEqual(["10101", "10102", "10103"]);
     expect(identity!.label).toContain("鱼鳞阵");
-    expect(identity!.player).toBe("无名客");
+    expect(identity!.player).toBe("测试玩家甲");
     expect(identity!.armyId).toBe("9001");
     expect(identity!.heroLevels).toEqual([50, 50, 50]);
   });
 
   it("child 战报的 parentBattleId 指向 block 的 battleId", () => {
-    const child = battleReport({ recordType: "child", parentBattleId: "10328151540032", battleId: "10328151540032-1" });
+    const child = battleReport({ recordType: "child", parentBattleId: "test-battle-001", battleId: "test-battle-001-1" });
     const identity = getAllianceLineupIdentity(child, "attack");
-    expect(identity!.parentBattleId).toBe("10328151540032");
+    expect(identity!.parentBattleId).toBe("test-battle-001");
   });
 
   it("无任何阵容线索时返回 null", () => {
-    const record = battleReport({ attacker: { player: { name: "无名客" } } });
+    const record = battleReport({ attacker: { player: { name: "测试玩家甲" } } });
     expect(getAllianceLineupIdentity(record, "attack")).toBeNull();
   });
 });
@@ -158,7 +158,7 @@ describe("isValidAllianceLineup（终审口径阵容过滤）", () => {
     const record = battleReport({
       attacker: side(
         "边界队",
-        "玉门关",
+        "测试同盟甲",
         "9009",
         [hero("10101", "SP周瑜", 46), hero("10102", "诸葛亮", 46), hero("10103", "诸葛瑾", 46)],
         5000,
@@ -170,14 +170,14 @@ describe("isValidAllianceLineup（终审口径阵容过滤）", () => {
   it("child 残队（少于 3 将）→ 无效", () => {
     const record = battleReport({
       recordType: "child",
-      attacker: side("残队", "玉门关", "9008", [hero("10101", "SP周瑜"), hero("10102", "诸葛亮")], 8000),
+      attacker: side("残队", "测试同盟甲", "9008", [hero("10101", "SP周瑜"), hero("10102", "诸葛亮")], 8000),
     });
     expect(isValidAllianceLineup(record, "attack")).toBe(false);
   });
 
   it("兵力缺失 → 无效", () => {
     const record = battleReport({
-      attacker: side("无兵力", "玉门关", "9007", [hero("10101", "SP周瑜"), hero("10102", "诸葛亮"), hero("10103", "诸葛瑾")], null),
+      attacker: side("无兵力", "测试同盟甲", "9007", [hero("10101", "SP周瑜"), hero("10102", "诸葛亮"), hero("10103", "诸葛瑾")], null),
     });
     expect(getAllianceSideArmyTroops(record, "attack")).toBe(0);
     expect(isValidAllianceLineup(record, "attack")).toBe(false);
@@ -186,25 +186,25 @@ describe("isValidAllianceLineup（终审口径阵容过滤）", () => {
   it("假兵力（armyTroops <= 100，实为武将数）→ 无效", () => {
     const record = battleReport({
       recordType: "child",
-      attacker: side("假兵力", "玉门关", "9006", [hero("10101", "SP周瑜"), hero("10102", "诸葛亮"), hero("10103", "诸葛瑾")], 3),
+      attacker: side("假兵力", "测试同盟甲", "9006", [hero("10101", "SP周瑜"), hero("10102", "诸葛亮"), hero("10103", "诸葛瑾")], 3),
     });
     expect(isValidAllianceLineup(record, "attack")).toBe(false);
     const hundred = battleReport({
-      attacker: side("假兵力百", "玉门关", "9005", [hero("10101", "SP周瑜"), hero("10102", "诸葛亮"), hero("10103", "诸葛瑾")], 100),
+      attacker: side("假兵力百", "测试同盟甲", "9005", [hero("10101", "SP周瑜"), hero("10102", "诸葛亮"), hero("10103", "诸葛瑾")], 100),
     });
     expect(isValidAllianceLineup(hundred, "attack")).toBe(false);
   });
 
   it("兵力低于 5000（非假兵力区间）→ 无效", () => {
     const record = battleReport({
-      attacker: side("低兵力", "玉门关", "9004", [hero("10101", "SP周瑜"), hero("10102", "诸葛亮"), hero("10103", "诸葛瑾")], 4999),
+      attacker: side("低兵力", "测试同盟甲", "9004", [hero("10101", "SP周瑜"), hero("10102", "诸葛亮"), hero("10103", "诸葛瑾")], 4999),
     });
     expect(isValidAllianceLineup(record, "attack")).toBe(false);
   });
 
   it("任一武将 level < 46 → 无效", () => {
     const record = battleReport({
-      attacker: side("低等级", "玉门关", "9003", [hero("10101", "SP周瑜", 50), hero("10102", "诸葛亮", 50), hero("10103", "诸葛瑾", 45)], 16000),
+      attacker: side("低等级", "测试同盟甲", "9003", [hero("10101", "SP周瑜", 50), hero("10102", "诸葛亮", 50), hero("10103", "诸葛瑾", 45)], 16000),
     });
     expect(isValidAllianceLineup(record, "attack")).toBe(false);
   });

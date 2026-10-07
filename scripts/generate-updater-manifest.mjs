@@ -52,7 +52,7 @@ const releaseAssetName = installerName.replace(/[^0-9A-Za-z._-]/g, ".");
 
 const manifest = {
   version,
-  notes: "Sanmou Ledger Windows release.",
+  notes: "三谋同盟管理助手 Windows 版本。",
   pub_date: new Date().toISOString(),
   platforms: {
     "windows-x86_64": {

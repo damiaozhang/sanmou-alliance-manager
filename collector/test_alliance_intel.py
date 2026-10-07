@@ -1,4 +1,4 @@
-"""alliance_intel 解析器单测。
+"""alliance_intel 解析器单测。名称和账号 ID 均使用虚构标识。
 
 用**游戏同构的合成载荷**（`[number]N` 数组编码 + collector 注入的 `__type/__count` 元键）
 覆盖四个新域的分派与提取；重点验证「结构变了也不能整段丢数据」这条底线。
@@ -21,8 +21,8 @@ def record(func: str, payload: dict, ts: int = 1789315200) -> dict:
 def test_rank_snapshot_from_number_encoded_entries() -> None:
     payload = {
         "rankType": "000100cc",
-        "[number]1": {"__type": "table", "rank": 1, "pid": 10808063361, "name": "甲", "unionName": "歌未竟", "prosperity": 59723},
-        "[number]2": {"__type": "table", "rank": 2, "pid": 70036061556, "name": "乙", "unionName": "欧润吉", "prosperity": 36898},
+        "[number]1": {"__type": "table", "rank": 1, "pid": 90000003001, "name": "甲", "unionName": "演示同盟甲", "prosperity": 59723},
+        "[number]2": {"__type": "table", "rank": 2, "pid": 90000003002, "name": "乙", "unionName": "演示同盟乙", "prosperity": 36898},
     }
     snapshots = extract_intel_snapshots(record("RPCGetRankResponse", payload))
     assert len(snapshots) == 1
@@ -48,7 +48,7 @@ def test_rank_snapshot_keeps_payload_when_shape_unknown() -> None:
 
 def test_hero_rating_uses_evolution_enlighten_formula() -> None:
     payload = {
-        "pid": 70004057519,
+        "pid": 90000004001,
         "heroes": {
             "[number]1": {"heroId": 5021, "evolution": 5, "enlighten": 3, "level": 50},
             "[number]2": {"heroId": 2014, "evolution": 4, "enlighten": 0, "level": 48},
@@ -58,7 +58,7 @@ def test_hero_rating_uses_evolution_enlighten_formula() -> None:
     assert len(snapshots) == 1
     snapshot = snapshots[0]
     assert snapshot["kind"] == "hero_rating"
-    assert snapshot["subjectKey"] == "70004057519"
+    assert snapshot["subjectKey"] == "90000004001"
     by_id = {entry["subjectKey"]: entry for entry in snapshot["entries"]}
     assert by_id["5021"]["value"] == 503  # 5 * 100 + 3
     assert by_id["2014"]["value"] == 400
@@ -95,12 +95,12 @@ def test_player_profile_from_list_and_from_flat_payload() -> None:
     listed = extract_intel_snapshots(
         record(
             "SRPC_GetSimpleDataViaAvatarIdsResponse",
-            {"avatars": {"[number]1": {"pid": 2861039, "name": "甲", "prosperity": 48088, "unionName": "歌未竟"}}},
+            {"avatars": {"[number]1": {"pid": 90000005001, "name": "甲", "prosperity": 48088, "unionName": "演示同盟甲"}}},
         )
     )
     assert len(listed) == 1
     assert listed[0]["kind"] == "player_profile"
-    assert listed[0]["subjectKey"] == "2861039"
+    assert listed[0]["subjectKey"] == "90000005001"
     assert listed[0]["metrics"]["prosperity"] == 48088
 
     flat = extract_intel_snapshots(

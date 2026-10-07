@@ -1,186 +1,82 @@
-# Sanmou Ledger
+# 三谋同盟管理助手
 
-> An **offline** desktop ledger and battle-report manager for the SLG game
-> *《三国：谋定天下》* (Three Kingdoms: Strategy for the World — "Sanmou").
-> Built with **Tauri 2 + React 18 + Rust + SQLite**.
+给《三国：谋定天下》同盟管理者和玩家使用的 Windows 桌面工具。把成员、设施、辎重和战报整理到本机，方便查看同盟情况、比较历史变化、分析阵容表现和导出表格。
 
-Sanmou Ledger keeps every capture, roster snapshot, lineup stat and battle report on
-**your own machine**. There is no account, no cloud sync, and no telemetry — nothing
-is ever uploaded anywhere.
+**[下载 Windows 安装包](https://github.com/damiaozhang/sanmou-alliance-manager/releases/latest) · [玩家使用指南](docs/USER_GUIDE.md) · [反馈问题](https://github.com/damiaozhang/sanmou-alliance-manager/issues)**
 
 [![CI](https://github.com/damiaozhang/sanmou-alliance-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/damiaozhang/sanmou-alliance-manager/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue.svg)](#requirements)
+[![Windows](https://img.shields.io/badge/Windows-10%2F11%20x64-blue.svg)](#下载安装)
 
----
+## 能帮你做什么
 
-## Highlights
+| 想解决的问题 | 助手里的功能 |
+| --- | --- |
+| 同盟成员信息散、每次都要手抄 | 记录成员、设施、日志、辎重和成员身份绑定，查看活跃度 |
+| 想知道几天前后有哪些变化 | 保存历史快照，在「时间对比」中比较两个时间段 |
+| 战报太多，难以集中整理 | 在本机监听并保存普通战报和同盟战报 |
+| 想看哪套阵容表现好、对什么队伍占优 | 查看阵容出场、胜率、对阵结果和不同红度下的表现 |
+| 想把结果发给管理组继续整理 | 导出 JSON、CSV、HTML 或 Excel（XLSX） |
 
-- **Fully local.** All data lives in a SQLite database under your Windows app-data
-  directory. Export it, back it up, restore it — it never leaves the machine.
-- **Alliance ledger.** Member rosters, facility snapshots, alliance logs, supply
-  (辎重), member identity binding and an activity-risk view, all scoped per workspace.
-- **Battle capture.** A passive Frida-based listener attaches to the game process and
-  records alliance battle packets (1004 / 1007 / 1008) without touching game files.
-- **Roster & matchup analytics.** Lineup win rates, head-to-head counters, red-tier
-  (红度) stratified win rates, and cross-workspace power trends.
-- **Time comparison.** Any two historical snapshots can be diffed over an editable
-  time window.
-- **Four export formats.** Whole-workspace bundles in JSON / CSV / HTML / XLSX.
-- **Automatic updates.** Signed NSIS installer + Tauri updater.
+统计反映的是已采集的样本，胜率不等于对所有对手的必胜概率。计算方法见[统计口径](docs/STATISTICS.md)。
 
-## Requirements
+## 下载安装
 
-| | |
-|---|---|
-| OS | Windows 10 / 11 (x64) |
-| Node.js | 18+ (development) |
-| Rust | 1.77+ stable (development) |
-| Python | 3.11+ (collector fallback / runtime scan) |
+1. 打开[下载页面](https://github.com/damiaozhang/sanmou-alliance-manager/releases/latest)。
+2. 下载后缀为 `.exe` 的安装包，双击安装。
+3. 先启动游戏，再打开助手，按[使用指南](docs/USER_GUIDE.md)开始记录。
 
-To build the bundled Frida bridge you additionally need `pyinstaller` and `frida`
-(see [Building the Frida bridge](#building-the-frida-bridge)).
+目前提供 **Windows 10 / 11（64 位）** 安装包。普通玩家不需要下载源码，也不需要自己安装 Node.js、Rust、Python 或 Frida；安装包已包含战报采集所需的桥接运行时。
 
-## Quick start
+现有 v1.0.0 安装包文件名是 `Sanmou.Ledger_1.0.0_x64-setup.exe`，这是本助手的安装包。`.exe.sig` 和 `latest.json` 是更新校验文件，玩家不需要单独打开。
 
-```bash
-npm install
-python -m pip install pyinstaller frida   # required once: builds the bundled bridge
+安装包目前未做 Windows 发布者代码签名，系统可能提示未知发布者。核对下载来源后再决定是否运行；更新校验签名与 Windows 发布者签名是两回事。
+
+## 第一次使用
+
+1. 在「总览」创建数据工作区，按区服、赛季或同盟区分数据。
+2. 打开「同盟快照」，点击「采集同盟数据」，在游戏中打开或刷新相关同盟界面。单次采集完成后会自动停止。
+3. 在「同盟数据」查看已采集的信息；要整理战报，进入「战报抓取」连接游戏进程。
+4. 在游戏里手动打开战报、翻页或展开连战记录，助手才会收到相应数据。
+5. 用「阵容中心」「时间对比」「战报时间线」查看结果，需要时导出文件。
+
+详细操作、数据工作区与采集输出目录的区别、连接失败的排查方法见[玩家使用指南](docs/USER_GUIDE.md)。
+
+## 数据与隐私
+
+- 同盟数据、战报、日志和数据库保存在本机，没有账号系统、云端同步或数据分析上报。
+- 版本更新功能使用本仓库的 GitHub Releases；「本地保存」不表示更新下载也不需要网络。
+- 你主动导出的表格、战报、截图、日志和备份可能包含玩家名、同盟名、坐标和本机路径。分享或提交问题前请先脱敏。
+- 请勿把自己的数据库、采集目录、密钥或环境配置提交到这个公开仓库。`.gitignore` 只能防止符合规则的未跟踪文件被默认加入，不能删除已经提交的内容或历史记录。
+
+## 开发与贡献
+
+以下内容面向开发者。项目使用 Tauri 2、React 18、TypeScript、Rust 和 SQLite。
+
+在 Windows 开发环境中：
+
+```powershell
+npm ci
+python -m pip install pyinstaller frida
 npm run bridge:build
 npm run tauri dev
 ```
 
-> `src-tauri/assets/frida_bridge.exe` is not committed (~50 MB). Because Tauri
-> validates every `bundle.resources` entry at compile time, `tauri dev`,
-> `tauri build` and `cargo test` all fail until `npm run bridge:build` has run
-> once — see [Building the Frida bridge](#building-the-frida-bridge).
+首次编译 Rust 前必须构建 `frida_bridge.exe`，它不随源码入库。仅查看浏览器预览可运行 `npm run dev`，其中展示的是模拟数据，不能连接游戏。
 
-Only want the UI (mock data, no Rust backend)?
+| 文档 | 用途 |
+| --- | --- |
+| [开发环境](docs/DEV_SETUP.md) | 安装依赖、构建、运行与环境变量 |
+| [系统架构](docs/ARCHITECTURE.md) | 模块、数据流与接口 |
+| [采集协议](docs/COLLECTOR_PROTOCOL.md) | 采集进程的输入输出约定 |
+| [统计口径](docs/STATISTICS.md) | 胜率、阵容与样本过滤规则 |
+| [发布流程](docs/RELEASE.md) | 版本、打包、签名与更新清单 |
+| [贡献指南](CONTRIBUTING.md) | 测试要求、代码约定与问题反馈 |
 
-```bash
-npm run dev
-```
+`src-tauri/assets/legacy/` 是当前桥接运行时仍需要的兼容源码；`docs/battle-grabber-v6/` 是集成前的历史资料，当前玩家操作以本页和使用指南为准。
 
-## Build & release
+## 项目说明与许可
 
-```bash
-npm run tauri build          # NSIS installer + updater signature
-npm run release:manifest     # generate latest.json for the updater
-```
+这是社区项目，与游戏开发方、发行方没有隶属或合作关系。游戏名称与相关术语归其权利人所有。使用时请遵守游戏规则及服务条款。
 
-The release pipeline is tag-driven: push a `v*` tag and the `release` job in
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) builds the installer and
-publishes a GitHub Release. See [docs/RELEASE.md](docs/RELEASE.md) for the full
-checklist, signing keys and secret names.
-
-### Building the Frida bridge
-
-`src-tauri/assets/frida_bridge.exe` is **not** committed (it is a ~50 MB
-PyInstaller one-file bundle). Generate it locally before packaging:
-
-```bash
-python -m pip install pyinstaller frida frida-tools
-npm run bridge:build
-```
-
-The script resolves its V4/V5 dependencies from
-`src-tauri/assets/legacy/` by default, or from `BATTLE_GRABBER_V4_ROOT` /
-`BATTLE_GRABBER_V5_ROOT` if you have the original source trees checked out.
-
-## Architecture
-
-```
-React 18 + TypeScript  ──►  Tauri 2 IPC (49 commands)  ──►  Rust (SQLite / WAL)
-                                                                │
-                                                   ┌────────────┴────────────┐
-                                                   │   Collector sidecar     │
-                                                   │  Rust native  / Python  │
-                                                   └────────────┬────────────┘
-                                                                │ stdio JSONL
-                                                   ┌────────────┴────────────┐
-                                                   │  Frida runtime scan     │
-                                                   │  attach · hooks · dump  │
-                                                   └────────────┬────────────┘
-                                                                │ attach
-                                                       target game process
-```
-
-A full breakdown — module map, IPC contract, data flow, and the key design
-decisions — is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-### Project layout
-
-| Path | What lives there |
-|---|---|
-| `src/` | React frontend (pages, features, feature-scoped hooks, ts-rs bindings) |
-| `src-tauri/src/` | Rust backend: Tauri commands, SQLite layer, sidecar supervision, V6 bridge |
-| `collector/` | Python collector sidecar, flow handlers, Frida runtime-scan probe |
-| `src-tauri/assets/` | Hooks, authority term tables, legacy V4/V5 fallback (bridge exe is built, not committed) |
-| `scripts/` | Build, version-check, manifest and smoke-test helpers |
-| `docs/` | Architecture, collector protocol, dev setup, release, statistics |
-
-## Documentation
-
-| Doc | Contents |
-|---|---|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System overview, module map, IPC contract, data flow |
-| [docs/DEV_SETUP.md](docs/DEV_SETUP.md) | Environment setup, build commands, env-var reference |
-| [docs/COLLECTOR_PROTOCOL.md](docs/COLLECTOR_PROTOCOL.md) | stdin/stdout JSON-Lines sidecar protocol |
-| [docs/STATISTICS.md](docs/STATISTICS.md) | How battle win rates and lineups are computed |
-| [docs/RELEASE.md](docs/RELEASE.md) | Release checklist and updater signing |
-| [docs/DESIGN_TONE.md](docs/DESIGN_TONE.md) | UI design tokens and component conventions |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute, test, and open a PR |
-
-## Verification
-
-```bash
-npx tsc --noEmit          # frontend types
-npm run lint              # eslint
-npm run test:coverage     # vitest + coverage thresholds
-npm run check:version     # version consistency guard
-
-cd src-tauri && cargo test && cargo clippy
-```
-
-CI runs all of the above on `windows-latest`, plus a `python -m unittest` pass over
-the collector sidecar.
-
-## Privacy
-
-Sanmou Ledger is designed to be data-sovereign:
-
-- No network calls other than the optional update check against this repository's
-  GitHub Releases.
-- No analytics, no crash reporting, no accounts.
-- The SQLite database, capture artifacts and logs stay in your app-data folder and
-  are git-ignored by every pattern in `.gitignore`.
-
-## Disclaimer
-
-This is a community project. It is **not** affiliated with, endorsed by, or
-sponsored by the game's developer or publisher. All game names, terms and data
-are the property of their respective owners. Use at your own risk and in
-accordance with the game's terms of service.
-
-## License
-
-[MIT](LICENSE) © Sanmou Ledger contributors.
-Bundled third-party components are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
----
-
-## 中文说明
-
-**Sanmou Ledger** 是一款完全离线的《三国：谋定天下》同盟数据台账与战报管理桌面工具，
-技术栈为 Tauri 2 + React 18 + Rust + SQLite。
-
-- **数据不出本机**：所有采集结果、成员快照、阵容统计与战报都存在本机 SQLite 数据库中，
-  除可选的版本更新检查外不发起任何网络请求，无账号、无埋点、无上传。
-- **核心能力**：同盟台账（成员/设施/日志/辎重/成员绑定）、战报抓取（Frida 被动监听）、
-  阵容胜率与克制分析、时间对比、四种格式（JSON/CSV/HTML/XLSX）整包导出。
-- **开发**：`npm install` 后执行 `npm run tauri dev`；仅调前端用 `npm run dev`。
-- **打包**：先跑 `npm run bridge:build` 生成 `frida_bridge.exe`，再执行 `npm run tauri build`。
-- **发布**：推送 `v*` tag 即由 GitHub Actions 自动构建并创建 Release，详见
-  [docs/RELEASE.md](docs/RELEASE.md)。
-
-本项目为社区作品，与游戏开发方/发行方无任何关联。
+代码采用 [MIT 许可](LICENSE)。第三方组件说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

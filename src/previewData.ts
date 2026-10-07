@@ -4,6 +4,8 @@
  * 为什么需要它：`mockState` 的初始值全为空，导致浏览器预览下所有页面只能渲染空态，
  * 无法评估信息密度、排版与交互——而预览模式的用途正是"不连 Tauri 也能看界面"。
  *
+ * 玩家与同盟名称均为演示用虚构名称。
+ *
  * 设计原则：
  * 1. **确定性**：用固定种子的伪随机，同一时刻生成的数据稳定，避免每次刷新数字乱跳；
  * 2. **规模贴近真实**：成员 24 人 / 战报 120 场（跨 7 天）/ 会话 6 次，其中包含失败会话；
@@ -114,7 +116,7 @@ function buildIntelPreview(
   const entries: IntelEntryRow[] = [];
   let snapshotId = 1;
   let entryId = 1;
-  const unions = ["歌未竟", "逐日峰", "欧润吉", "西洲", "星戈", "凤天承运"];
+  const unions = ["演示同盟甲", "演示同盟丙", "演示同盟乙", "演示同盟丁", "演示同盟戊", "演示同盟己"];
   const pick = (index: number) => names[index % names.length] ?? `玩家${index}`;
 
   // 1) 全服排行榜（繁荣榜·全职业）
@@ -151,7 +153,7 @@ function buildIntelPreview(
     workspaceId: 1,
     allianceId: 1,
     kind: "hero_rating",
-    subjectKey: "70004057519",
+    subjectKey: "90000004001",
     subjectLabel: "本人阵容红度",
     observedAt,
     entryCount: 12,
@@ -211,7 +213,7 @@ function buildIntelPreview(
     workspaceId: 1,
     allianceId: 1,
     kind: "player_profile",
-    subjectKey: "2861039",
+    subjectKey: "90000005001",
     subjectLabel: "本人档案",
     observedAt,
     entryCount: 6,
@@ -224,7 +226,7 @@ function buildIntelPreview(
       snapshotId: profileSnapshotId,
       kind: "player_profile",
       rank: 0,
-      subjectKey: String(2861039 + index * 517),
+      subjectKey: String(90000005001 + index * 517),
       name: pick(index * 7),
       unionName: unions[index % unions.length],
       value: 48088 - index * 2100,

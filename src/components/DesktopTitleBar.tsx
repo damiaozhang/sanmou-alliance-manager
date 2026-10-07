@@ -37,7 +37,7 @@ export function DesktopTitleBar() {
     <div className="flex h-8 shrink-0 select-none items-center border-b border-white/[0.07] bg-nav-bg text-nav-fg">
       <div data-tauri-drag-region className="flex h-full min-w-0 flex-1 items-center px-3">
         <span data-tauri-drag-region className="text-[11.5px] font-medium text-nav-fg-active">
-          Sanmou Ledger
+          三谋同盟管理助手
         </span>
         <span data-tauri-drag-region className="ml-2 text-[10.5px] text-nav-fg-muted">
           同盟作战情报台
