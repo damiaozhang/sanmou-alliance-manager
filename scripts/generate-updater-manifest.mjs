@@ -46,7 +46,7 @@ if (!signature) {
 
 const manifest = {
   version,
-  notes: "Sanmou Alliance Manager Windows release.",
+  notes: "Sanmou Ledger Windows release.",
   pub_date: new Date().toISOString(),
   platforms: {
     "windows-x86_64": {
