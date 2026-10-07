@@ -21,9 +21,11 @@ updater manifest 生成逻辑见 `scripts/generate-updater-manifest.mjs`。
 
 3. **CI 自动构建**：推送 `v*` tag 触发 `release` job（先等 frontend / collector-python / backend 三个 job 通过）：
    - `npm ci` → `npm run check:version`
+   - `python -m pip install pyinstaller frida` → `npm run bridge:build`（bridge exe 不入库，发版时现建）
    - `npm run tauri build` 生成 NSIS 安装包与 `.sig` updater 签名
    - `npm run release:manifest` 生成 `latest.json`
-   - `gh release create` 创建 GitHub Release 并上传 `.exe`、`.exe.sig`、`latest.json`
+   - 创建 GitHub Release 并上传 `.exe`、`.exe.sig`、`latest.json`
+     （幂等：Release 已存在时改用 `gh release upload --clobber` 覆盖资产）
 
 4. **校验 latest.json**：发布完成后访问
    `https://github.com/damiaozhang/sanmou-alliance-manager/releases/latest/download/latest.json`，
@@ -33,6 +35,13 @@ updater manifest 生成逻辑见 `scripts/generate-updater-manifest.mjs`。
    - `signature` 非空（来自安装包旁的 `.sig` 文件）
 
    已安装的旧版本客户端会在启动时通过 updater endpoint 检测到新版本。
+
+> ⚠️ **安装包名里的空格会被 GitHub 改写**：产品名是 `Sanmou Ledger`，本地产物文件名含空格
+> （`Sanmou Ledger_<version>_x64-setup.exe`），而 GitHub Releases 会把资源名中
+> `[A-Za-z0-9._-]` 以外的字符替换为 `.`，实际存成 `Sanmou.Ledger_<version>_x64-setup.exe`。
+> updater 会**原样下载** `latest.json` 里的 URL，因此
+> `scripts/generate-updater-manifest.mjs` 必须先做同样的改写再拼 URL，否则更新链接 404。
+> 发版后请用 `curl -sIL <url>` 确认返回 200。
 
 ## 发布前手动冒烟（真机）
 
