@@ -1,7 +1,9 @@
 # 发布流程（Release Checklist）
 
-Sanmou Ledger Windows 桌面端发布说明。CI 发布 job 定义在 `.github/workflows/ci.yml` 的 `release` job，
+三谋同盟管理助手 Windows 桌面端发布说明。CI 发布 job 定义在 `.github/workflows/ci.yml` 的 `release` job，
 updater manifest 生成逻辑见 `scripts/generate-updater-manifest.mjs`。
+
+玩家展示名称为「三谋同盟管理助手」。`productName` 保留 `Sanmou Ledger`，用于兼容既有安装包名与更新链接；窗口标题、首页及 Release 标题使用中文名。应用标识 `com.sanmou.alliance-manager` 保持稳定，以便继续访问旧版本地数据。
 
 ## 发布流程
 

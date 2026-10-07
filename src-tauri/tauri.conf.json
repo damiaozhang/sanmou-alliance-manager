@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Sanmou Ledger",
+        "title": "三谋同盟管理助手",
         "decorations": false,
         "width": 1280,
         "height": 820,

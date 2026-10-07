@@ -14,6 +14,20 @@ src-tauri/clippy_out.txt
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3-shm
+*.sqlite3-wal
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
 temp-keys/
 runtime-captures/
 output/
@@ -30,6 +44,10 @@ vite.config.ts.timestamp-*.mjs
 .cleanup-backup/
 .git-old-*/
 .workbuddy/
+.skills/
+.DS_Store
+Thumbs.db
+Desktop.ini
 
 # ── 预编译二进制 ──
 # frida bridge 由 scripts/build-battle-grabber-frida-bridge.ps1 本地生成，

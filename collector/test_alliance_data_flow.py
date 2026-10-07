@@ -1,3 +1,5 @@
+"""测试载荷中的玩家、同盟、军团名称和账号 ID 均使用虚构标识。"""
+
 from __future__ import annotations
 
 import sys
@@ -18,30 +20,30 @@ class AllianceDataRuntimeFlowTests(unittest.TestCase):
         payload = {
             "[number]1": {
                 "legionList": {
-                    "[number]1": {"id": 13, "name": "神行奇佐"},
-                    "[number]2": {"legionId": 7, "legionName": "商务台球"},
+                    "[number]1": {"id": 13, "name": "测试军团甲"},
+                    "[number]2": {"legionId": 7, "legionName": "测试军团乙"},
                 }
             }
         }
 
         self.assertEqual(
             _extract_nslg_legion_names(payload),
-            {13: "神行奇佐", 7: "商务台球"},
+            {13: "测试军团甲", 7: "测试军团乙"},
         )
 
     def test_extracts_legion_names_from_runtime_legions_field(self) -> None:
         payload = {
             "[number]3": {
                 "legions": {
-                    "[number]1": {"legionId": 3, "legionName": "白板", "legionLeaderId": 10706057735},
-                    "[number]2": {"legionId": 7, "legionName": "商务台球", "legionLeaderId": 70005063052},
+                    "[number]1": {"legionId": 3, "legionName": "测试军团丙", "legionLeaderId": 90000002001},
+                    "[number]2": {"legionId": 7, "legionName": "测试军团乙", "legionLeaderId": 90000002002},
                 }
             }
         }
 
         self.assertEqual(
             _extract_nslg_legion_names(payload),
-            {3: "白板", 7: "商务台球"},
+            {3: "测试军团丙", 7: "测试军团乙"},
         )
 
     def test_preview_applies_legion_name_mapping_to_members(self) -> None:
@@ -53,8 +55,8 @@ class AllianceDataRuntimeFlowTests(unittest.TestCase):
                 "args": {
                     "[number]1": {
                         "legionList": {
-                            "[number]1": {"id": 13, "name": "神行奇佐"},
-                            "[number]2": {"id": 7, "name": "商务台球"},
+                            "[number]1": {"id": 13, "name": "测试军团甲"},
+                            "[number]2": {"id": 7, "name": "测试军团乙"},
                         }
                     }
                 },
@@ -67,15 +69,15 @@ class AllianceDataRuntimeFlowTests(unittest.TestCase):
                     "[number]3": {
                         "members": {
                             "[number]1": {
-                                "avatarId": 10434062160,
-                                "avatarName": "福建音音",
+                                "avatarId": 90000001001,
+                                "avatarName": "测试玩家甲",
                                 "roleId": 1,
                                 "legionId": 13,
                                 "power": 141282,
                             },
                             "[number]2": {
-                                "avatarId": 70025065955,
-                                "avatarName": "吉伊睡不醒",
+                                "avatarId": 90000001002,
+                                "avatarName": "测试玩家乙",
                                 "roleId": 1,
                                 "legionId": 7,
                                 "power": 140757,
@@ -92,17 +94,17 @@ class AllianceDataRuntimeFlowTests(unittest.TestCase):
             for item in preview.get("memberSnapshots", [])
         }
 
-        self.assertEqual(by_name["福建音音"]["legionName"], "神行奇佐")
-        self.assertEqual(by_name["吉伊睡不醒"]["legionName"], "商务台球")
+        self.assertEqual(by_name["测试玩家甲"]["legionName"], "测试军团甲")
+        self.assertEqual(by_name["测试玩家乙"]["legionName"], "测试军团乙")
 
     def test_member_name_is_not_treated_as_legion_name(self) -> None:
         payload = {
             "[number]3": {
                 "members": {
                     "[number]1": {
-                        "id": 10434062160,
-                        "avatarName": "福建音音",
-                        "name": "福建音音",
+                        "id": 90000001001,
+                        "avatarName": "测试玩家甲",
+                        "name": "测试玩家甲",
                         "legionId": 13,
                         "power": 141282,
                     }
@@ -113,20 +115,20 @@ class AllianceDataRuntimeFlowTests(unittest.TestCase):
         self.assertEqual(_extract_nslg_legion_names(payload), {})
 
     def test_extracts_legion_names_from_ui_legion_groups(self) -> None:
-        # P1 修复：原先期望值把中文误解码固化为乱码（如 "神行奇佐" 经 utf-8→gbk
+        # P1 修复：原先期望值把中文误解码固化为乱码（如 "测试军团甲" 经 utf-8→gbk
         # 误转）。UI 缓存 dump 由 runtime_probe 以 utf-8 解码进入 alliance_data，
         # 应为正确中文，这里改为防回归断言正确中文。
         payload = {
             "source": "UI.Common.UIMgr.uiClsCache",
             "legionGroups": [
-                {"legionId": 13, "legionName": "神行奇佐", "uiPath": "UnionMemberUI.ui.legionScrollListCList.listData.1"},
-                {"legionId": 7, "legionName": "商务台球", "uiPath": "UnionMemberUI.ui.legionScrollListCList.listData.2"},
+                {"legionId": 13, "legionName": "测试军团甲", "uiPath": "UnionMemberUI.ui.legionScrollListCList.listData.1"},
+                {"legionId": 7, "legionName": "测试军团乙", "uiPath": "UnionMemberUI.ui.legionScrollListCList.listData.2"},
             ],
         }
 
         self.assertEqual(
             _extract_nslg_legion_names(payload),
-            {13: "神行奇佐", 7: "商务台球"},
+            {13: "测试军团甲", 7: "测试军团乙"},
         )
 
 
@@ -176,12 +178,12 @@ class LegionNameEncodingTests(unittest.TestCase):
     def test_correct_chinese_passes_through_unchanged(self) -> None:
         payload = {
             "legionGroups": [
-                {"legionId": 13, "legionName": "神行奇佐"},
-                {"legionId": 7, "legionName": "商务台球"},
+                {"legionId": 13, "legionName": "测试军团甲"},
+                {"legionId": 7, "legionName": "测试军团乙"},
             ]
         }
         result = _extract_nslg_legion_names(payload)
-        self.assertEqual(result, {13: "神行奇佐", 7: "商务台球"})
+        self.assertEqual(result, {13: "测试军团甲", 7: "测试军团乙"})
         # 确保没有把中文误解码成 gbk 乱码（典型乱码含 Private Use Area 字符）。
         for value in result.values():
             self.assertNotIn("�", value)

@@ -203,7 +203,7 @@ export function AppShell({
             </div>
             {collapsed ? null : (
               <div className="min-w-0">
-                <p className="truncate text-[12.5px] font-medium leading-tight text-nav-fg-active">Sanmou Ledger</p>
+                <p className="truncate text-[12.5px] font-medium leading-tight text-nav-fg-active">三谋同盟管理助手</p>
                 <p className="truncate text-[10.5px] leading-tight text-nav-fg-muted">
                   {activeWorkspace ? `${activeWorkspace.name} · ${activeWorkspace.seasonName}` : "未选择工作区"}
                 </p>
