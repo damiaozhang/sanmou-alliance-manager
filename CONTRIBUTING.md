@@ -14,11 +14,15 @@ the checks a change must pass, and a few project-specific conventions.
 
 ```bash
 npm install
+python -m pip install pyinstaller frida
+npm run bridge:build     # once: Tauri validates bundle.resources at compile time
 npm run tauri dev        # full app (Vite + Rust)
 npm run dev              # frontend only, uses mock data
 ```
 
 Rust lives in `src-tauri/`, the Python collector sidecar in `collector/`.
+`npm run bridge:build` is required once before the first Rust compile — see
+[Building the Frida bridge](#building-the-frida-bridge).
 
 ## Quality gates
 
