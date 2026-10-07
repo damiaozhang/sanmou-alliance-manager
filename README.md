@@ -17,7 +17,7 @@
 
 目前提供 **Windows 10 / 11（64 位）** 安装包。普通玩家不需要自己安装 Node.js、Rust、Python 或 Frida；安装包已包含战报采集所需的桥接运行时。
 
-现有 v1.0.0 安装包文件名是 `Sanmou.Ledger_1.0.0_x64-setup.exe`，这是本助手的安装包。`.exe.sig` 和 `latest.json` 是更新校验文件，玩家不需要单独打开。
+安装包文件名格式为 `Sanmou.Ledger_<版本号>_x64-setup.exe`，这是本助手的安装包。`.exe.sig` 和 `latest.json` 是更新校验文件，玩家不需要单独打开。
 
 安装包目前未做 Windows 发布者代码签名，系统可能提示未知发布者。请核对下载来源；更新校验签名与 Windows 发布者签名是两回事。
 
@@ -108,14 +108,14 @@
 
 **怎样更新，数据怎么保留？**
 
-新版安装包发布后，可从[下载页面](https://github.com/damiaozhang/sanmou-alliance-manager/releases/latest)获取。更新前先在「设置」中备份数据；备份和导出文件也请妥善保管。
+新版安装包发布后，可从[下载页面](https://github.com/damiaozhang/sanmou-alliance-manager/releases/latest)获取。当前版本需下载新版安装包更新。更新前先在「设置」中备份数据，并退出助手，再运行安装包；备份和导出文件也请妥善保管。
 
 仍有问题可查看[完整使用指南](docs/USER_GUIDE.md)，或[反馈问题](https://github.com/damiaozhang/sanmou-alliance-manager/issues)。反馈时附上 Windows 版本、助手版本、操作步骤与脱敏后的错误信息，便于排查。
 
 ## 更新记录
 
+- **v1.0.1**：使用中文界面展示名称，完善玩家介绍、操作指南与界面预览；清理仓库中的隐私样本，补充账号权限、采集重试与项目使用声明。
 - **v1.0.0**：首个公开版本，提供同盟数据采集、战报整理、阵容分析、时间对比与导出。
-- **当前源码更新（待新版安装包发布）**：完善中文介绍与界面名称，清理仓库中的隐私样本，补充玩家指南与界面截图。
 
 源码与说明更新后，已下载的 `.exe` 不会随之改变。已发布版本与安装文件请以[发布页面](https://github.com/damiaozhang/sanmou-alliance-manager/releases)为准。
 

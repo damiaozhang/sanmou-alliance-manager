@@ -36,7 +36,7 @@ updater manifest 生成逻辑见 `scripts/generate-updater-manifest.mjs`。
    - `platforms["windows-x86_64"].url` 指向本次 release 的安装包
    - `signature` 非空（来自安装包旁的 `.sig` 文件）
 
-   已安装的旧版本客户端会在启动时通过 updater endpoint 检测到新版本。
+   当前代码已注册 updater 插件并配置 endpoint，但尚未调用客户端更新检查与安装接口；旧版本不会仅因发布新包就在启动时自动更新。用户需下载新版安装包更新。
 
 > ⚠️ **安装包名里的空格会被 GitHub 改写**：产品名是 `Sanmou Ledger`，本地产物文件名含空格
 > （`Sanmou Ledger_<version>_x64-setup.exe`），而 GitHub Releases 会把资源名中

@@ -1,6 +1,6 @@
 [package]
 name = "sanmou-alliance-manager"
-version = "1.0.0"
+version = "1.0.1"
 description = "Sanmou Ledger — offline alliance data ledger and battle-report manager for Windows"
 authors = ["Sanmou Ledger contributors"]
 edition = "2021"
