@@ -44,6 +44,12 @@ if (!signature) {
   throw new Error(`Updater signature file is empty: ${signaturePath}`);
 }
 
+// GitHub Releases 会把资源名里非 [A-Za-z0-9._-] 的字符替换成 "."（例如空格
+// → "."，"Sanmou Ledger_1.0.0_x64-setup.exe" 实际存为
+// "Sanmou.Ledger_1.0.0_x64-setup.exe"）。updater 直接按 URL 下载，必须用
+// 上传后的真实资源名，否则 latest.json 指向 404。
+const releaseAssetName = installerName.replace(/[^0-9A-Za-z._-]/g, ".");
+
 const manifest = {
   version,
   notes: "Sanmou Ledger Windows release.",
@@ -51,7 +57,7 @@ const manifest = {
   platforms: {
     "windows-x86_64": {
       signature,
-      url: `${releaseBaseUrl}/${encodeURIComponent(installerName)}`,
+      url: `${releaseBaseUrl}/${encodeURIComponent(releaseAssetName)}`,
     },
   },
 };
@@ -60,3 +66,4 @@ const outputPath = path.join(bundleDir, "latest.json");
 await writeFile(outputPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
 console.log(`Generated updater manifest: ${outputPath}`);
+console.log(`  installer asset: ${releaseAssetName}`);
