@@ -1,0 +1,7 @@
+node_modules
+dist
+src-tauri/target
+*.pyc
+__pycache__
+collector/__pycache__
+collector/flows/__pycache__

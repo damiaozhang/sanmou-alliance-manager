@@ -1,0 +1,17 @@
+CREATE INDEX IF NOT EXISTS idx_capture_session_workspace ON capture_session(workspace_id, started_at);
+CREATE INDEX IF NOT EXISTS idx_export_job_created_at ON export_job(created_at, id DESC);
+CREATE INDEX IF NOT EXISTS idx_member_snapshot_alliance_time ON member_snapshot(alliance_id, observed_at);
+CREATE INDEX IF NOT EXISTS idx_union_log_event_alliance_time ON union_log_event(alliance_id, event_time);
+CREATE INDEX IF NOT EXISTS idx_building_snapshot_alliance_time ON building_snapshot(alliance_id, observed_at);
+CREATE INDEX IF NOT EXISTS idx_battle_block_alliance_time ON battle_block(alliance_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_lineup_profile_player ON lineup_profile(player_id, valid_from);
+CREATE INDEX IF NOT EXISTS idx_member_snapshot_workspace_time ON member_snapshot(workspace_id, observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_building_snapshot_workspace_time ON building_snapshot(workspace_id, observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_union_group_workspace_time ON union_group(workspace_id, observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_battle_block_workspace_code ON battle_block(workspace_id, battle_code, record_index);
+CREATE INDEX IF NOT EXISTS idx_union_log_event_workspace_time ON union_log_event(workspace_id, event_time DESC);
+CREATE INDEX IF NOT EXISTS idx_raw_artifact_session ON raw_artifact(capture_session_id);
+CREATE INDEX IF NOT EXISTS idx_capture_session_status ON capture_session(status);
+CREATE INDEX IF NOT EXISTS idx_lineup_profile_workspace ON lineup_profile(workspace_id, source_battle_id);
+CREATE INDEX IF NOT EXISTS idx_member_binding_workspace ON alliance_member_binding(workspace_id, valid_to);
+CREATE INDEX IF NOT EXISTS idx_export_job_workspace ON export_job(workspace_id, created_at DESC);

@@ -1,0 +1,38 @@
+[package]
+name = "sanmou-alliance-manager"
+version = "0.1.0"
+description = "Sanmou Ledger — offline alliance data ledger and battle-report manager for Windows"
+authors = ["Sanmou Ledger contributors"]
+edition = "2021"
+
+[lib]
+name = "sanmou_alliance_manager_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "sanmou-alliance-manager"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2.6.2", features = [] }
+
+[dependencies]
+anyhow = "1.0"
+chrono = { version = "0.4.38", features = ["serde"] }
+env_logger = "0.10"
+log = "0.4"
+parking_lot = "0.12"
+rusqlite = { version = "0.32.1", features = ["bundled", "backup"] }
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
+sha2 = "0.10.9"
+tauri = { version = "2.6.2", features = [] }
+tauri-plugin-updater = "2"
+thiserror = "1.0.64"
+rfd = "0.15"
+# ts-rs：从 Rust models 派生 TypeScript 类型（src/lib/bindings/），替代前端手写 IPC 类型镜像。
+# 注意：不启用 serde-json-impl——serde_json::Value 字段一律用 #[ts(type = "...")] 显式声明，
+# 让遗漏的 Value 字段在编译期报错，避免 ts-rs 的 JsonValue 联合类型破坏前端索引访问消费点。
+# no-serde-warnings：21 处 skip_serializing_if 已由 #[ts(optional)] 显式接管（ts-rs serde-compat
+# 无法解析该属性，告警为纯噪声）。
+ts-rs = { version = "10", features = ["no-serde-warnings"] }

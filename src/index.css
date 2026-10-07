@@ -1,0 +1,296 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 15% 12%;
+    /* 2026-09-21 精致化：强调色从「默认网页蓝」(217 91%) 降饱和到 220 64%，
+       与导航轨 220 色相同族；饱和的默认蓝是浏览器观感的第二大来源。 */
+    --primary: 220 64% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 12% 20%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 8% 46%;
+    --accent: 220 60% 97%;
+    --accent-foreground: 220 50% 36%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    /* 边框从 89% 减淡到 91.5%：满屏 33 处 border 在旧值下形成「格子感」，
+       减淡后轮廓退为发丝线，层级交给背景色差。 */
+    --border: 220 14% 91.5%;
+    --input: 220 14% 89%;
+    --ring: 220 64% 56%;
+    --radius: 0.375rem;
+    --chart-1: 220 64% 56%;
+    --chart-2: 162 73% 40%;
+    --chart-3: 47 95% 45%;
+    --chart-4: 262 60% 55%;
+    --chart-5: 340 65% 55%;
+    --success: 150 60% 30%;
+    --success-foreground: 0 0% 100%;
+    /* 2026-09-20（审查 P1-3 实测修订）：success/warning 原值作为**正文文字**在
+       白底上的对比度只有 3.21:1 / 2.14:1，低于 WCAG AA 的 4.5:1（日志等级、
+       Badge 文案都在用）。降明度后分别为 5.29:1 / 5.40:1。
+       注：SLG 战报语义色（victory/defeat/draw/side-*）与 primary/info 实测
+       4.7~6.0:1 已达标，保持原色不动。 */
+    --warning: 38 92% 30%;
+    --warning-foreground: 0 0% 100%;
+    --info: 200 80% 38%;
+    --info-foreground: 0 0% 100%;
+    /* 视觉层级：卡片阴影压成单层发丝（双层投影是「悬浮网页卡片」的来源），
+       深度层级主要交给边框与背景色差，浮起感只留给真正的浮层。 */
+    --shadow-card: 0 1px 2px rgb(28 35 51 / 0.05);
+    --shadow-elevated: 0 4px 6px rgb(28 35 51 / 0.05), 0 10px 28px rgb(28 35 51 / 0.11);
+    --brand-soft: 220 60% 97%;
+    --brand-soft-foreground: 220 50% 36%;
+    --panel: 220 20% 98%;
+    /* SLG 战报语义色 */
+    --victory: 142 70% 30%;
+    --victory-foreground: 0 0% 100%;
+    --defeat: 0 72% 51%;
+    --defeat-foreground: 0 0% 100%;
+    --draw: 38 92% 29%;
+    --draw-foreground: 0 0% 100%;
+    /* 战力等级色 */
+    --rank-legendary: 43 96% 56%;
+    --rank-elite: 0 0% 55%;
+    --rank-advanced: 25 60% 48%;
+    /* 阵营色 */
+    --side-ally: 188 80% 30%;
+    --side-enemy: 347 77% 49%;
+    /* 导航轨（重设计 2026-09-21）：低饱和深蓝，替代原浅色侧栏。
+       目的：让「导航」与「工作区」一眼分开，数据区成为界面上唯一的亮区。
+       同批次移除了品牌块的 from-sky-500 via-primary to-indigo-600 三段渐变
+       （原 AppShell.tsx:44，违反本文件基调 §6「禁止渐变光晕」）。 */
+    --nav-bg: 220 24% 14%;
+    --nav-hover: 220 26% 19%;
+    --nav-active-bg: 220 30% 24%;
+    --nav-fg: 220 16% 76%;
+    --nav-fg-muted: 220 12% 52%;
+    --nav-fg-active: 0 0% 100%;
+    --nav-indicator: 220 64% 58%;
+  }
+
+  .dark {
+    --background: 220 24% 7%;
+    --foreground: 220 14% 93%;
+    --card: 220 22% 9%;
+    --card-foreground: 220 14% 93%;
+    --popover: 220 22% 9%;
+    --popover-foreground: 220 14% 93%;
+    --primary: 220 64% 64%;
+    --primary-foreground: 222 30% 10%;
+    --secondary: 220 14% 14%;
+    --secondary-foreground: 220 14% 88%;
+    --muted: 220 14% 14%;
+    --muted-foreground: 220 10% 58%;
+    --accent: 217 50% 18%;
+    --accent-foreground: 217 85% 70%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 16% 17%;
+    --input: 220 16% 17%;
+    --ring: 220 64% 62%;
+    --chart-1: 220 64% 64%;
+    --chart-2: 162 65% 42%;
+    --chart-3: 47 80% 48%;
+    --chart-4: 262 55% 58%;
+    --chart-5: 340 60% 58%;
+    --success: 150 50% 38%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 85% 48%;
+    --warning-foreground: 0 0% 100%;
+    --info: 200 70% 48%;
+    --info-foreground: 0 0% 100%;
+    /* 视觉层级（Sprint 1 新增，暗色版） */
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.28);
+    --shadow-elevated: 0 2px 4px rgb(0 0 0 / 0.36), 0 12px 32px rgb(0 0 0 / 0.44);
+    --brand-soft: 217 50% 18%;
+    --brand-soft-foreground: 217 85% 70%;
+    --panel: 220 20% 10%;
+    /* SLG 战报语义色 */
+    --victory: 142 60% 45%;
+    --victory-foreground: 0 0% 100%;
+    --defeat: 0 62% 50%;
+    --defeat-foreground: 0 0% 100%;
+    --draw: 38 85% 50%;
+    --draw-foreground: 0 0% 100%;
+    /* 战力等级色 */
+    --rank-legendary: 43 90% 55%;
+    --rank-elite: 0 0% 60%;
+    --rank-advanced: 25 55% 50%;
+    /* 阵营色 */
+    --side-ally: 188 80% 55%;
+    --side-enemy: 347 75% 60%;
+    /* 导航轨（暗色版）：比内容区再暗一档，保证两区仍有分层 */
+    --nav-bg: 220 28% 5%;
+    --nav-hover: 220 26% 11%;
+    --nav-active-bg: 220 26% 15%;
+    --nav-fg: 220 14% 68%;
+    --nav-fg-muted: 220 12% 44%;
+    --nav-fg-active: 0 0% 100%;
+    --nav-indicator: 220 64% 64%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    /* 拉丁字符与数字走 Segoe UI（Win11 原生应用同款），汉字才落到雅黑——
+       旧栈把雅黑放第一位，导致所有数字/英文都用雅黑渲染（粗、糊、松），
+       这是「网页感」最大的单一来源。数字密集的仪表盘尤其敏感。 */
+    font-family:
+      "Segoe UI Variable Text",
+      "Segoe UI",
+      Inter,
+      system-ui,
+      -apple-system,
+      "PingFang SC",
+      "Hiragino Sans GB",
+      "Microsoft YaHei UI",
+      "Microsoft YaHei",
+      "Noto Sans CJK SC",
+      sans-serif;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  .font-mono,
+  code,
+  pre {
+    line-height: 1.5;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+::selection {
+  background: hsl(var(--primary) / 0.16);
+}
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.page-enter {
+  animation: fadeSlideIn 0.15s ease-out;
+}
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.skeleton {
+  @apply bg-muted rounded;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+@keyframes skeletonPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.status-pulse {
+  animation: statusPulse 1.7s ease-in-out infinite;
+}
+
+.progress-indeterminate {
+  animation: progressIndeterminate 1.35s ease-in-out infinite;
+}
+@keyframes progressIndeterminate {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(310%);
+  }
+}
+@keyframes statusPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--info) / 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 4px hsl(var(--info) / 0);
+  }
+}
+
+.member-inspector {
+  animation: inspectorIn 0.18s ease-out;
+}
+@keyframes inspectorIn {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 1180px) {
+  .member-inspector {
+    position: fixed;
+    z-index: 40;
+    top: 92px;
+    right: 12px;
+    bottom: 38px;
+    overflow-y: auto;
+    box-shadow: var(--shadow-elevated);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

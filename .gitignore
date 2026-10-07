@@ -1,0 +1,63 @@
+# ── 依赖与构建产物 ──
+node_modules/
+dist/
+coverage/
+src-tauri/target/
+src-tauri/gen/
+src-tauri/cargo_test_out.txt
+src-tauri/clippy_out.txt
+*.pdb
+*.log
+
+# ── 本地数据 / 密钥（绝不入库）──
+# 运行期数据库、采集原始证据、流程日志都只存在使用者本机
+*.db
+*.db-shm
+*.db-wal
+temp-keys/
+runtime-captures/
+output/
+__pycache__/
+*.pyc
+
+# ── 本地开发临时产物 ──
+.tmp/
+.tmp-*
+.tmp-edge-*
+.edge-profile/
+temp-sidecar-appdata/
+vite.config.ts.timestamp-*.mjs
+.cleanup-backup/
+.git-old-*/
+.workbuddy/
+
+# ── 预编译二进制 ──
+# frida bridge 由 scripts/build-battle-grabber-frida-bridge.ps1 本地生成，
+# 不纳入版本控制（发布用的安装包会内嵌它）。
+*.exe
+
+# ── 本地分析产物（导出的成员名单 / 阵容表 / 图表，不入库）──
+/MVP分析_*.html
+/MVP分析_*.json
+/全面优化审查报告_*.html
+/*对比分析_*.png
+/*深度对抗分析_*.png
+/*阵容出场对比_*.png
+/*阵容差异化_*.json
+/*阵容差异化_*.html
+/*阵容胜率分析_*.png
+/*对阵分析_*.png
+/*对阵分析_*.json
+/战场分析*_*.html
+/战场分析*_*.json
+/战场分析*_*.png
+/战场分析*_*.pdf
+/*.xlsx
+/*技能分析_*.html
+/*技能分析_*.json
+/*阵容_*.json
+/离线成员名单_*.csv
+/离线成员名单_*.txt
+/verify_s16.py
+/scripts/analysis/
+/scripts/wrytest/

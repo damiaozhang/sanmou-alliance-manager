@@ -1,0 +1,109 @@
+{
+  "version": "5.0.0",
+  "schema_version": "5.0",
+  "game_process": [
+    "com.smgj.nslg.exe",
+    "com.bilibili.nslg.exe",
+    "com.slg.sanmou.exe",
+    "com.newsm.sanmou.exe"
+  ],
+  "game_process_fuzzy": "nslg",
+  "game_window_keywords": [
+    "谋定天下",
+    "三国",
+    "nslg"
+  ],
+  "game_window_reject_keywords": [
+    "Visual Studio Code",
+    "Cursor",
+    "node_modules",
+    "battle_grabber",
+    ".md"
+  ],
+  "output_dir": "output",
+  "protocol": {
+    "status_interval_sec": 3.0,
+    "install_timeout_sec": 30.0,
+    "idle_timeout_sec": 15.0,
+    "ignore_existing_on_start": true,
+    "target_msg_ids": [1008, 1017],
+    "render_msg_ids": [1008],
+    "copy_patterns": [
+      "*.meta.json",
+      "*.decoded.json",
+      "*.content.bin",
+      "*.packet.bin",
+      "*eventDataList*",
+      "*binStatics*",
+      "trace.log"
+    ]
+  },
+  "report": {
+    "max_lines": 0,
+    "include_raw_json": true,
+    "include_html": true,
+    "group_by_round": true
+  },
+  "automation": {
+    "enabled": true,
+    "mode": "continuous",
+    "max_pages": 80,
+    "post_action_wait_sec": 12.0,
+    "continuous": {
+      "slots": [[0.50, 0.315], [0.50, 0.600], [0.50, 0.865]],
+      "open_x_ratios": [0.35, 0.50, 0.72],
+      "open_wait_sec": 1.2,
+      "open_change_threshold": 2.0,
+      "before_replay_wait_sec": 3.0,
+      "replay_wait_sec": 7.0,
+      "back_clicks": 2,
+      "back_wait_sec": 1.1,
+      "page_pause_sec": 1.0,
+      "max_no_move_pages": 2,
+      "expand_each_page": true,
+      "expand_max_clicks": 30,
+      "preflight_enabled": true,
+      "preflight_rounds": 2,
+      "preflight_wait_sec": 0.45,
+      "preflight_press_esc": false,
+      "preflight_clicks": [[0.055, 0.035], [0.064, 0.083], [0.950, 0.100]]
+    }
+  },
+  "battle_detail": {
+    "replay_btn": [0.576, 0.938],
+    "after_replay_click_delay_ms": 300
+  },
+  "ocr": {
+    "input": {
+      "driver": "sendinput",
+      "click_driver": "pydirectinput",
+      "airtest_device_uri": "Windows:///",
+      "pyautogui_failsafe": true,
+      "trace_actions": true,
+      "trace_file": "input_actions.jsonl",
+      "focus_before_action": true,
+      "keyboard_backend": "auto"
+    },
+    "navigation": {
+      "envelope_btn": [0.20, 0.82],
+      "battle_entry_candidates": [[0.205, 0.815], [0.20, 0.82], [0.195, 0.815], [0.205, 0.835]],
+      "alliance_tab": [0.75, 0.126],
+      "battle_tab": [0.382, 0.124],
+      "detail_back_btn": [0.064, 0.083],
+      "close_btn": [0.95, 0.10],
+      "expand_btn_x": 0.88,
+      "expand_min_score": 3.0,
+      "scroll_area": [0.064, 0.198, 0.888, 0.90],
+      "scroll_card_px": 250,
+      "scroll_driver": "airtest",
+      "airtest_device_uri": "Windows:///",
+      "airtest_swipe_duration": 0.75,
+      "airtest_swipe_attempts": 2,
+      "scroll_wheel": -5,
+      "scroll_wheel_repeats": 1,
+      "scroll_wheel_pause_ms": 35,
+      "scroll_no_move_retries": 4,
+      "allow_drag_fallback": false
+    }
+  }
+}

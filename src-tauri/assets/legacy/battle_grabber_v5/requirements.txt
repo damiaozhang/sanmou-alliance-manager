@@ -1,0 +1,10 @@
+frida>=17.0.0
+mss==6.1.0
+pywin32>=306
+pyautogui>=0.9.54
+pydirectinput>=1.0.4
+rapidocr-onnxruntime>=1.4.4; python_version < "3.13"
+opencv-python>=4.9.0
+Pillow>=10.0.0
+numpy>=1.26.0,<2.0
+pyinstaller>=6.0.0

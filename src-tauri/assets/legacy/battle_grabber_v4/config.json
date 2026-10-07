@@ -1,0 +1,216 @@
+{
+  "version": "4.0.4",
+  "schema_version": "4.0",
+  "diagnostic_mode": false,
+  "list_scan_mode": true,
+  "game_process": [
+    "com.smgj.nslg.exe",
+    "com.bilibili.nslg.exe",
+    "com.slg.sanmou.exe"
+  ],
+  "game_process_fuzzy": "nslg",
+  "game_window_keywords": [
+    "三国谋定天下",
+    "谋定天下"
+  ],
+  "game_window_reject_keywords": [
+    "Visual Studio Code",
+    "Cursor",
+    "node_modules",
+    "battle_grabber",
+    ".md"
+  ],
+  "output_dir": "output",
+  "output_filename_format": "{timestamp}_战报.txt",
+  "json_filename_format": "{timestamp}_战报.json",
+  "csv_filename_format": "{timestamp}_战报.csv",
+  "frida": {
+    "batch_size": 200,
+    "batch_interval_ms": 3000,
+    "max_string_length": 2000,
+    "min_string_length": 5,
+    "max_string_bytes": 50000,
+    "cleanup_intermediate_files": false,
+    "realtime_finalize_timeout_ms": 30000
+  },
+  "parser": {
+    "idle_timeout_sec": 10,
+    "combat_keywords": [
+      "发动战法",
+      "发动普通攻击",
+      "执行技能",
+      "开始行动",
+      "损失了兵力",
+      "恢复了兵力",
+      "消耗",
+      "会心",
+      "奇谋",
+      "反击",
+      "因几率未触发",
+      "因几率未发动"
+    ],
+    "deploy_keywords": [
+      "阵型",
+      "强化效果",
+      "补给值",
+      "兵种强化",
+      "行动顺序判断完毕"
+    ]
+  },
+  "heroes_whitelist": [],
+  "gui": {
+    "title": "三国谋定天下 - 战报提取器 v4",
+    "window_width": 900,
+    "window_height": 700,
+    "font_family": "Microsoft YaHei",
+    "font_size": 10,
+    "theme": "dark"
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "battle_grabber.log",
+    "max_bytes": 10485760,
+    "backup_count": 5
+  },
+  "structured_logging": {
+    "enabled": true,
+    "file": "battle_grabber.jsonl"
+  },
+  "reconnect": {
+    "max_retries": 5,
+    "base_delay_sec": 3,
+    "max_delay_sec": 60
+  },
+  "heartbeat": {
+    "interval_sec": 30,
+    "timeout_sec": 5
+  },
+  "circuit_breaker": {
+    "error_threshold": 10,
+    "cooldown_sec": 10
+  },
+  "history": {
+    "enabled": true,
+    "db_path": "battle_history.db"
+  },
+  "auto_update": {
+    "enabled": true,
+    "check_url": "https://api.github.com/repos/user/battle-grabber/releases/latest"
+  },
+  "manual_ocr_interval_ms": 2500,
+  "manual_ocr_max_idle_scans": 240,
+  "auto_ocr_max_pages": 9999,
+  "ocr": {
+    "schema_version": "4.0",
+    "max_idle_pages": 1,
+    "umi_ocr": {
+      "engine": "rapid",
+      "rapid_ready_timeout_ms": 30000,
+      "rapid_request_timeout_ms": 45000,
+      "allow_http_fallback": false,
+      "options": {
+        "ocr.maxSideLen": 2048
+      }
+    },
+    "input": {
+      "driver": "sendinput",
+      "click_driver": "pydirectinput",
+      "airtest_device_uri": "Windows:///",
+      "airtest_cooldown_sec": 2.0,
+      "pyautogui_failsafe": true,
+      "trace_actions": true,
+      "trace_file": "input_actions.jsonl",
+      "focus_before_action": true,
+      "restore_foreground_after_action": false,
+      "keyboard_backend": "auto",
+      "default_priority": 50
+    },
+    "preprocessing": {
+      "enabled": false,
+      "contexts": ["page", "roi"],
+      "clahe": false,
+      "clahe_clip_limit": 2.0,
+      "clahe_tile_grid": 8,
+      "denoise": false,
+      "denoise_h": 3,
+      "sharpen": false,
+      "sharpen_amount": 1.0,
+      "color_detection": {
+        "space": "hsv",
+        "gold_threshold": 0.04,
+        "green_threshold": 0.03,
+        "pale_threshold": 0.03
+      }
+    },
+    "hero_avatar": {
+      "enabled": true,
+      "source_dir": "hero-avatars",
+      "map_file": "hero_avatar_map.json",
+      "min_score": 0.82,
+      "override_ocr_min_score": 0.88,
+      "max_candidates": 3
+    },
+    "battle_detail": {
+      "replay_btn": [0.777, 0.943],
+      "page_guard": true,
+      "frida_ready_timeout_ms": 3500,
+      "after_replay_click_delay_ms": 300
+    },
+    "navigation": {
+      "envelope_btn": [0.20, 0.82],
+      "battle_entry_candidates": [[0.205, 0.815], [0.20, 0.82], [0.195, 0.815], [0.205, 0.835]],
+      "alliance_tab": [0.75, 0.126],
+      "battle_tab": [0.382, 0.124],
+      "close_btn": [0.95, 0.10],
+      "expand_btn_x": 0.88,
+      "expand_safe_bottom_ratio": 0.86,
+      "expand_min_score": 3.0,
+      "expand_click_direction": "down",
+      "detail_back_btn": [0.064, 0.083],
+      "expand_forbidden_summary_red_ratio": 0.35,
+      "expand_forbidden_share_white_ratio": 0.06,
+      "expand_forbidden_share_gold_ratio": 0.02,
+      "scroll_area": [0.064, 0.198, 0.888, 0.90],
+      "scroll_card_px": 250,
+      "scroll_driver": "airtest",
+      "airtest_device_uri": "Windows:///",
+      "airtest_swipe_duration": 0.75,
+      "airtest_python": "python",
+      "airtest_swipe_attempts": 2,
+      "scroll_anchor_mode": "result_icon",
+      "scroll_anchor_scan_x_range": [0.42, 0.60],
+      "scroll_anchor_scan_y_range": [0.08, 0.92],
+      "scroll_anchor_min_score": 1.35,
+      "scroll_anchor_right_offset_px": 35,
+      "scroll_anchor_prefer_y_ratio": 0.62,
+      "scroll_anchor_drag_distance_ratio": 0.42,
+      "scroll_anchor_fallback_points": true,
+      "scroll_airtest_max_points": 6,
+      "scroll_stagnant_page_limit": 8,
+      "sendinput_swipe_steps": 18,
+      "scroll_gesture_start_y_ratio": 0.82,
+      "scroll_gesture_end_y_ratio": 0.18,
+      "scroll_safe_left_x_ratio": 0.43,
+      "scroll_safe_right_x_ratio": 0.54,
+      "scroll_wheel": -5,
+      "scroll_wheel_repeats": 1,
+      "scroll_wheel_pause_ms": 35,
+      "scroll_no_move_retries": 4,
+      "scroll_max_points": 6,
+      "scroll_bidirectional_drag": false,
+      "scroll_diff_threshold": 1.8,
+      "allow_drag_fallback": false
+    }
+  },
+  "module_search": {
+    "lua_module_patterns": [
+      "*lua*.dll",
+      "xlua.dll",
+      "tolua.dll"
+    ],
+    "export_names": [
+      "lua_pushlstring",
+      "lua_pushstring"
+    ]
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build && npm run bridge:build",
+    "devPath": "http://127.0.0.1:1420",
+    "distDir": "../dist",
+    "withGlobalTauri": true
+  },
+  "package": {
+    "productName": "战报提取器V6",
+    "version": "6.0.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": true,
+      "shell": {
+        "all": true,
+        "scope": [
+          {
+            "name": "python",
+            "cmd": "python",
+            "args": true
+          }
+        ]
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.battle-grabber.v6",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "resources": [
+        "assets/frida_bridge.exe",
+        "assets/frida_bridge.py",
+        "assets/authoritative_terms.json",
+        "assets/frida_passive_battle_capture.js",
+        "assets/capture_passive_battle_packets.lua",
+        "assets/hook_battle.js",
+        "assets/capture_battle.lua"
+      ],
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": "",
+        "wix": {
+          "language": "zh-CN"
+        }
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "战报提取器 V6",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600,
+        "center": true
+      }
+    ]
+  }
+}

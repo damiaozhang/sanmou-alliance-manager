@@ -1,0 +1,80 @@
+{
+  "manifestVersion": "2026-06-09",
+  "captureFlows": {
+    "alliance_data": {
+      "handler": "flows.alliance_data",
+      "flow": "alliance_runtime",
+      "expectedArtifacts": [
+        "rpc_dump",
+        "ui_snapshot",
+        "static_config"
+      ],
+      "navigation": [
+        "alliance_home",
+        "member_list",
+        "member_detail",
+        "log_categories",
+        "facility_technology",
+        "siege_transport",
+        "rankings",
+        "season_team",
+        "player_profile",
+        "hero_library",
+        "static_config",
+        "database_validation"
+      ],
+      "nextProbe": "__noop__",
+      "dumpProbe": "__dump_rpc_captures__",
+      "dumpProbes": [
+        "__dump_rpc_captures__",
+        "__dump_alliance_ui_cache__",
+        "__dump_alliance_legion_cache__"
+      ],
+      "installPreludeProbes": [
+        "__require_only__:Proxy.AvatarMembers.ImpUnion",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpUnion|SRPC_RPCReqUnionMemberInfoResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpUnion|SRPC_RPCReqGetAllLegionInfoResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpRank|RPCGetRankResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpRank|RPCGetOneRankDataResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpRank|RPCGetSelfUnionRankIndexResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpHeros|RPCGetAllAvatarHeroResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpInfo|RPCGetPersonalInformationResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpInfo|SRPC_GetSimpleDataViaAvatarIdsResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpSeason|RPCGetSelfTeamBaseInfoResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpSeason|RPCGetTeamDetailInfoResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpSeason|RPCGetTeamMemberInfoResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpUnionBuilding|RPC_GetUnionBuildingInfoResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpUnionHistory|SRPC_GetUnionHistoryInfoResponse",
+        "__install_rpc_hook__:Proxy.AvatarMembers.ImpUnionHistory|SRPC_GetUnionHistoryDetailInfoResponse"
+      ],
+      "installSeconds": 20,
+      "dumpSeconds": 20,
+      "triggerWaitSeconds": 30,
+      "maxLuaStringBytes": 33554432,
+      "maxHookBytes": 33554432
+    },
+    "battle_passive": {
+      "handler": "flows.battle_passive",
+      "flow": "battle_listener",
+      "expectedArtifacts": [
+        "battle_block_list",
+        "battle_detail",
+        "battle_environment"
+      ],
+      "navigation": [
+        "battle_entry",
+        "battle_report_list",
+        "sub_battle",
+        "battle_detail",
+        "fixed_lineup"
+      ],
+      "nextProbe": "__install_battle_listener_hooks__",
+      "dumpProbe": "__dump_rpc_captures__",
+      "installSeconds": 20,
+      "dumpSeconds": 30,
+      "triggerWaitSeconds": 30,
+      "maxLuaStringBytes": 33554432,
+      "maxHookBytes": 33554432
+    }
+  }
+}

@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  frontend:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # 防回归护栏：package.json 与 src-tauri/tauri.conf.json 版本号必须一致
+      - run: npm run check:version
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run test
+      # 覆盖率下限护栏（vitest.config.ts 中的 thresholds，低于下限则失败）
+      - run: npm run test:coverage
+
+  collector-python:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      # collector sidecar 与 runtime probe 的单测（无需 frida 真实环境，均为 mock 驱动）
+      - run: python -m unittest discover -s collector -p "test_*.py"
+
+  backend:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: cargo test --manifest-path src-tauri/Cargo.toml
+      # ts-rs 漂移检查：cargo test 的导出测试会重新生成 src/lib/bindings/，
+      # 与入库内容不一致（改了 Rust 类型却没重新导出入库）则此步变红。
+      # 前端 job 的 tsc --noEmit 同时构成「契约错位编译期暴露」关卡。
+      - name: Check ts-rs bindings are up to date
+        run: git diff --exit-code -- src/lib/bindings/
+      - run: cargo clippy --manifest-path src-tauri/Cargo.toml
+
+  # 发布 job：推送 v* tag 触发。构建 Windows NSIS 安装包、生成 updater
+  # latest.json，并创建 GitHub Release 上传安装包 / .sig / latest.json。
+  #
+  # 前置条件：需在仓库 Settings → Secrets and variables → Actions 配置
+  # TAURI_SIGNING_PRIVATE_KEY（updater 私钥）与
+  # TAURI_SIGNING_PRIVATE_KEY_PASSWORD（私钥口令）。
+  # 私钥仅通过环境变量注入 runner，严禁提交到仓库（本地 temp-keys/ 已 gitignore）。
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+    needs: [frontend, collector-python, backend]
+    permissions:
+      contents: write
+    env:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # 版本号一致性前置检查：tag 打错或只改了一处版本号会在此拦截
+      - run: npm run check:version
+      # frida_bridge.exe 是 ~50MB 的 PyInstaller 产物，不入库，发版时在 runner 上现建
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install bridge build toolchain
+        run: python -m pip install pyinstaller frida
+      - name: Build Frida bridge
+        run: npm run bridge:build
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Build Tauri app (NSIS installer + updater signature)
+        run: npm run tauri build
+      - name: Generate updater manifest (latest.json)
+        run: npm run release:manifest
+      - name: Create GitHub Release and upload artifacts
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          $bundleDir = 'src-tauri/target/release/bundle/nsis'
+          $installer = Get-ChildItem $bundleDir -Filter "*_${version}_x64-setup.exe" | Select-Object -First 1
+          if (-not $installer) { throw "Installer for version $version not found in $bundleDir" }
+          gh release create "v$version" `
+            --title "v$version" `
+            --notes "Sanmou Alliance Manager v$version (auto-built by CI)." `
+            $installer.FullName `
+            "$($installer.FullName).sig" `
+            "$bundleDir/latest.json"
