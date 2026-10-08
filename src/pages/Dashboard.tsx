@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Check,
-  HeartPulse,
   Play,
   Plus,
   RefreshCw,
@@ -28,6 +27,8 @@ import { useAppStore } from "@/store/appStore";
 import { useWorkspaceManagement } from "@/features/workspace/useWorkspaceManagement";
 
 import { cn } from "@/lib/utils";
+// 版本号单一数据源：package.json（与 sidecar 版本锁定一致）
+import { version } from "../../package.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +36,10 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { SuspenseFallback } from "@/components/SuspenseFallback";
-import { PageShell } from "@/components/PageShell";
+import { PageHead } from "@/components/PageHead";
+import { KpiStrip } from "@/components/KpiStrip";
+import { UnitCard } from "@/components/UnitCard";
+import { LiveSessionCard } from "@/components/LiveSessionCard";
 import {
   Dialog,
   DialogContent,
@@ -70,17 +74,6 @@ const SESSION_STATUS_VARIANT: Record<string, "success" | "info" | "destructive" 
   completed: "success",
   failed: "destructive",
   pending: "secondary",
-};
-
-/** KPI 数值着色：语义色只用于状态表达，不做装饰（设计基调 §6） */
-const KPI_TONE_CLASS: Record<string, string> = {
-  primary: "text-foreground",
-  victory: "text-victory",
-  defeat: "text-defeat",
-  info: "text-info",
-  warning: "text-warning",
-  muted: "text-muted-foreground",
-  default: "text-foreground",
 };
 
 export function WorkspaceCreateFields({
@@ -222,9 +215,10 @@ export const Dashboard = React.memo(function Dashboard() {
   // ── 空工作区态：整页仅创建引导卡 ──
   if (workspaces.length === 0) {
     return (
-      <PageShell title="总览" description="还没有工作区，先创建一个开始记录你的同盟数据。">
+      <div className="p-5">
+        <PageHead title="总览" description="还没有工作区，先创建一个开始记录你的同盟数据。" />
         <div className="flex justify-center pt-6">
-          <div className="w-full max-w-md rounded-lg border border-border bg-card p-6">
+          <div className="surface-card w-full max-w-md p-6">
             <div className="mb-4 text-center">
               <div className="mb-2 flex justify-center text-primary/60">
                 <EmptyState illustration="beacon" />
@@ -244,7 +238,7 @@ export const Dashboard = React.memo(function Dashboard() {
             />
           </div>
         </div>
-      </PageShell>
+      </div>
     );
   }
 
@@ -274,7 +268,8 @@ export const Dashboard = React.memo(function Dashboard() {
   }
   const onlineCount = [...latest.values()].filter((s) => s.isOnline === 1).length;
   const memberTotal = latest.size;
-  const latestCapture = sessions.length > 0 ? formatCaptureRecordTime(sessions[0].finishedAt) : "—";
+  const latestCapture =
+    sessions.length > 0 ? formatCaptureRecordTime(sessions[0].finishedAt ?? sessions[0].startedAt) : "—";
 
   // ── 待办口径（S3-1）──
   // 未绑定玩家数 = allianceMembers.avatarId 未被 memberBindings.avatar 覆盖的成员数；
@@ -284,35 +279,6 @@ export const Dashboard = React.memo(function Dashboard() {
   );
   const unboundCount = (bundle?.allianceMembers ?? []).filter((m) => !coveredAvatarIds.has(m.avatarId)).length;
   const failedSessionCount = (bundle?.captureSessions ?? []).filter((s) => s.status === "failed").length;
-
-  // ── KPI 条（重设计）：由「四张独立卡片」改为一条 hairline 分隔的横排 ──
-  // 依据 DESIGN_TONE §3：KPI 优先做成一条分隔横排，不各套一张卡；§4：标签在上、数字在下，无数据显示 —
-  const kpis: Array<{ label: string; value: string; tone?: string; hint: string }> = [
-    {
-      label: "今日战报",
-      value: String(todayBattles),
-      tone: todayBattles > 0 ? "primary" : "muted",
-      hint: "今日 00:00 起",
-    },
-    {
-      label: "本周胜率",
-      value: weekWinRate === null ? "—" : `${weekWinRate}%`,
-      tone: weekWinRate === null ? "muted" : weekWinRate >= 50 ? "victory" : "defeat",
-      hint: weekKnown === 0 ? "本周暂无战报" : `攻方视角 · 平局计半 · ${weekKnown} 场`,
-    },
-    {
-      label: "在线成员",
-      value: memberTotal === 0 ? "—" : String(onlineCount),
-      tone: onlineCount > 0 ? "info" : "muted",
-      hint: memberTotal === 0 ? "暂无成员快照" : `共 ${memberTotal} 人`,
-    },
-    {
-      label: "未绑定成员",
-      value: unboundCount === 0 ? "0" : String(unboundCount),
-      tone: unboundCount > 0 ? "defeat" : "muted",
-      hint: unboundCount > 0 ? "需要处理" : "全部已绑定",
-    },
-  ];
 
   // ── 4 步主流程条：本质是 onboarding，数据齐了就隐藏（不再常驻占用首屏）──
   const hasAllianceData = sessions.some((s) => s.captureType === "alliance_data" && s.status === "completed");
@@ -327,85 +293,38 @@ export const Dashboard = React.memo(function Dashboard() {
     { label: "查看分析", ready: hasAnalysis, target: "/lineups", hint: "胜率 / 克制 / 排行" },
   ];
 
-  const healthColor =
-    healthToneInfo.tone === "success"
-      ? "text-victory"
-      : healthToneInfo.tone === "destructive"
-        ? "text-defeat"
-        : healthToneInfo.tone === "warning"
-          ? "text-warning"
-          : "text-info";
-
   return (
-    <PageShell
-      title="总览"
-      description={
-        activeWorkspace
-          ? `${activeWorkspace.name} · ${activeWorkspace.serverName} · ${activeWorkspace.seasonName}　本周采集 ${sessions.length} 次 · 最近 ${latestCapture}`
-          : undefined
-      }
-      actions={
-        <>
-          <Button variant="outline" size="sm" onClick={() => void handleRefresh()} disabled={refreshing}>
-            <RefreshCw size={14} className={cn("mr-1.5", refreshing && "animate-spin")} />
-            {refreshing ? "刷新中…" : "刷新"}
-          </Button>
-          <Button size="sm" onClick={() => onNavigate("/capture")}>
-            <Play size={14} className="mr-1.5" />
-            采集一轮
-          </Button>
-        </>
-      }
-    >
+    <div className="p-5">
+      <PageHead
+        title="总览"
+        description={
+          activeWorkspace
+            ? `${activeWorkspace.name} · ${activeWorkspace.serverName} · ${activeWorkspace.seasonName}　本周采集 ${sessions.length} 次 · 最近 ${latestCapture}`
+            : undefined
+        }
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={() => void handleRefresh()} disabled={refreshing}>
+              <RefreshCw size={14} className={cn("mr-1.5", refreshing && "animate-spin")} />
+              {refreshing ? "刷新中…" : "刷新"}
+            </Button>
+            <Button size="sm" onClick={() => onNavigate("/capture")}>
+              <Play size={14} className="mr-1.5" />
+              采集一轮
+            </Button>
+          </>
+        }
+      />
+
       {appError && (
-        <div className="rounded-lg border border-destructive/40 bg-card p-4">
+        <div className="mb-4 rounded-lg border border-destructive/40 bg-card p-4">
           <ErrorState message={`数据加载失败：${formatErrorMessage(appError)}`} />
         </div>
       )}
 
-      {/* ── 待办区：两项都为 0 时整区不渲染 ── */}
-      {(unboundCount > 0 || failedSessionCount > 0) && (
-        <section className="space-y-2">
-          {unboundCount > 0 && (
-            <div className="flex items-center gap-3 rounded-lg border border-warning/40 bg-warning/[0.06] px-4 py-2.5">
-              <AlertTriangle size={15} className="shrink-0 text-warning" />
-              <span className="text-[13px]">
-                <span className="font-medium tabular-nums">{unboundCount}</span> 位成员未绑定玩家
-                <span className="ml-1.5 text-[12px] text-muted-foreground">绑定后才能做玩家维度分析</span>
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto h-7 text-[12px]"
-                onClick={() => onNavigate("/alliance?tab=binding")}
-              >
-                去绑定
-              </Button>
-            </div>
-          )}
-          {failedSessionCount > 0 && (
-            <div className="flex items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/[0.06] px-4 py-2.5">
-              <AlertCircle size={15} className="shrink-0 text-destructive" />
-              <span className="text-[13px]">
-                <span className="font-medium tabular-nums">{failedSessionCount}</span> 次采集失败
-                <span className="ml-1.5 text-[12px] text-muted-foreground">查看失败原因并可重试</span>
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto h-7 text-[12px]"
-                onClick={() => onNavigate("/capture")}
-              >
-                去采集中心
-              </Button>
-            </div>
-          )}
-        </section>
-      )}
-
       {/* ── 新工作区引导：数据齐了自动隐藏 ── */}
       {needsOnboarding && (
-        <section className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
+        <section className="mb-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
           {steps.map((step, i) => (
             <button
               key={step.label}
@@ -438,159 +357,208 @@ export const Dashboard = React.memo(function Dashboard() {
         </section>
       )}
 
-      {/* ── KPI 条：一条 hairline 分隔的横排（基调 §3/§4）── */}
-      <section className="grid grid-cols-2 divide-x divide-border overflow-hidden rounded-lg border border-border bg-card lg:grid-cols-4">
-        {kpis.map((item) => (
-          <div key={item.label} className="px-5 py-3.5">
-            <p className="text-[11px] tracking-wide text-muted-foreground">{item.label}</p>
-            <p
-              className={cn(
-                "mt-1.5 text-[26px] font-medium leading-none tabular-nums tracking-[-0.02em]",
-                KPI_TONE_CLASS[item.tone ?? "default"],
-              )}
-            >
-              {item.value}
-            </p>
-            <p className="mt-1.5 truncate text-[11px] text-muted-foreground" title={item.hint}>
-              {item.hint}
-            </p>
-          </div>
-        ))}
-      </section>
+      {/* ── KPI 横排：hairline 分隔 + count-up（规格 §3/§4）── */}
+      <KpiStrip
+        items={[
+          { label: "今日战报", value: todayBattles, delta: { text: "今日 00:00 起", tone: "flat" } },
+          {
+            label: "本周胜率",
+            value: weekWinRate ?? 0,
+            suffix: "%",
+            overrideText: weekWinRate === null ? "—" : undefined,
+            delta:
+              weekWinRate === null
+                ? { text: "本周暂无战报", tone: "flat" }
+                : {
+                    text: weekWinRate >= 50 ? "▲ 达标" : "▼ 低于半数",
+                    tone: weekWinRate >= 50 ? "up" : "down",
+                  },
+          },
+          {
+            label: "在线成员",
+            value: onlineCount,
+            overrideText: memberTotal === 0 ? "—" : undefined,
+            delta: { text: `共 ${memberTotal} 人`, tone: "flat" },
+          },
+          {
+            label: "未绑定成员",
+            value: unboundCount,
+            delta: unboundCount > 0 ? { text: "需要处理", tone: "down" } : { text: "全部已绑定", tone: "up" },
+          },
+          {
+            label: "同盟健康度",
+            value: health.score,
+            delta: {
+              text: healthToneInfo.label,
+              tone:
+                healthToneInfo.tone === "success" ? "up" : healthToneInfo.tone === "destructive" ? "down" : "flat",
+            },
+          },
+        ]}
+      />
 
       {weekReports.length >= 500 && (
-        <p className="text-[11.5px] text-muted-foreground">
+        <p className="mb-4 text-[11.5px] text-muted-foreground">
           本周战报超过 500 条，今日战报与本周胜率基于最近 500 条统计，可能未覆盖全部。
         </p>
       )}
 
-      {/* ── 趋势 + 健康度 ── */}
-      <section className="grid gap-4 lg:grid-cols-3">
-        {hasBattleReports && (
-          <div className="overflow-hidden rounded-lg border border-border bg-card lg:col-span-2">
-            <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-              <h3 className="text-[13px] font-medium">胜率趋势</h3>
-              <span className="text-[11px] text-muted-foreground">近 7 天 · 攻方视角</span>
-            </div>
-            <div className="p-4">
+      {/* ── 主网格：左 2/3 趋势+健康度+最近采集，右 1/3 实时会话+待办 ── */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="flex flex-col gap-4 lg:col-span-2">
+          {hasBattleReports && (
+            <UnitCard title="胜率趋势" tag="近 7 天 · 攻方视角">
               <BattleWinRateChart battles={weekReports} days={7} />
-            </div>
-          </div>
-        )}
-        <div
-          className={cn(
-            "overflow-hidden rounded-lg border border-border bg-card",
-            !hasBattleReports && "lg:col-span-3",
+            </UnitCard>
           )}
-        >
-          <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <h3 className="flex items-center gap-1.5 text-[13px] font-medium">
-              <HeartPulse size={14} className={healthColor} />
-              同盟健康度
-            </h3>
-            <Badge variant={healthToneInfo.tone}>
-              {health.score} 分 · {healthToneInfo.label}
-            </Badge>
-          </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 lg:grid-cols-2">
-            {(
-              [
-                ["在线趋势", health.facets.onlineTrend, health.notes.onlineTrend],
-                ["平均红度", health.facets.redSpread, health.notes.redSpread],
-                ["人数稳定", health.facets.attritionSlope, health.notes.attritionSlope],
-                ["采集活跃", health.facets.joinLeaveRate, health.notes.joinLeaveRate],
-              ] as const
-            ).map(([label, value, note]) => (
-              <div key={label}>
-                <div className="mb-1 flex items-baseline justify-between gap-2">
-                  <span className="text-[11.5px] text-muted-foreground">{label}</span>
-                  <span className="text-[12.5px] font-medium tabular-nums">{value}</span>
-                </div>
-                <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-                  <div
-                    className={cn(
-                      "h-full rounded-full",
-                      value >= 75 ? "bg-victory" : value >= 55 ? "bg-info" : value >= 35 ? "bg-warning" : "bg-destructive",
-                    )}
-                    style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
-                  />
-                </div>
-                <p className="mt-1 truncate text-[11px] text-muted-foreground" title={note}>
-                  {note}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 最近采集会话 ── */}
-      <section className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <h3 className="text-[13px] font-medium">最近采集</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 text-[12px]"
-            onClick={() => onNavigate("/capture")}
+          <UnitCard
+            title="同盟健康度"
+            action={
+              <Badge variant={healthToneInfo.tone}>
+                {health.score} 分 · {healthToneInfo.label}
+              </Badge>
+            }
           >
-            全部
-            <ArrowRight size={13} className="ml-1" />
-          </Button>
-        </div>
-        {sessions.length === 0 ? (
-          appLoading ? (
-            <div className="p-4">
-              <SuspenseFallback variant="table" />
-            </div>
-          ) : (
-            <div className="p-2">
-              <EmptyState
-                title="还没有采集记录"
-                action={{ label: "去采集中心", onClick: () => onNavigate("/capture") }}
-              />
-            </div>
-          )
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>记录</TableHead>
-                <TableHead>类型</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead>完成时间</TableHead>
-                <TableHead>摘要</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sessions.slice(0, 6).map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="font-mono text-[12px] text-muted-foreground">
-                    {captureRecordLabel(s)}
-                  </TableCell>
-                  <TableCell className="text-[12.5px]">{captureTypeLabel(s.captureType)}</TableCell>
-                  <TableCell>
-                    <Badge variant={SESSION_STATUS_VARIANT[s.status] ?? "secondary"}>
-                      {SESSION_STATUS_LABEL[s.status] ?? s.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-[12px] text-muted-foreground">
-                    {s.finishedAt
-                      ? formatCaptureRecordTime(s.finishedAt)
-                      : formatCaptureRecordTime(s.startedAt)}
-                  </TableCell>
-                  <TableCell className="max-w-[380px] truncate text-[12px] text-muted-foreground">
-                    {summarizeSessionNote(s)}
-                  </TableCell>
-                </TableRow>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              {(
+                [
+                  ["在线趋势", health.facets.onlineTrend, health.notes.onlineTrend],
+                  ["平均红度", health.facets.redSpread, health.notes.redSpread],
+                  ["人数稳定", health.facets.attritionSlope, health.notes.attritionSlope],
+                  ["采集活跃", health.facets.joinLeaveRate, health.notes.joinLeaveRate],
+                ] as const
+              ).map(([label, value, note]) => (
+                <div key={label}>
+                  <div className="mb-1 flex items-baseline justify-between gap-2">
+                    <span className="text-[11.5px] text-muted-foreground">{label}</span>
+                    <span className="text-[12.5px] font-medium tabular-nums">{value}</span>
+                  </div>
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className={cn(
+                        "h-full rounded-full",
+                        value >= 75 ? "bg-victory" : value >= 55 ? "bg-info" : value >= 35 ? "bg-warning" : "bg-destructive",
+                      )}
+                      style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 truncate text-[11px] text-muted-foreground" title={note}>
+                    {note}
+                  </p>
+                </div>
               ))}
-            </TableBody>
-          </Table>
-        )}
-      </section>
+            </div>
+          </UnitCard>
+          <UnitCard
+            title="最近采集"
+            action={
+              <Button variant="ghost" size="sm" className="h-7 text-[12px]" onClick={() => onNavigate("/capture")}>
+                全部
+                <ArrowRight size={13} className="ml-1" />
+              </Button>
+            }
+          >
+            {sessions.length === 0 ? (
+              appLoading ? (
+                <SuspenseFallback variant="table" />
+              ) : (
+                <EmptyState
+                  title="还没有采集记录"
+                  action={{ label: "去采集中心", onClick: () => onNavigate("/capture") }}
+                />
+              )
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>记录</TableHead>
+                    <TableHead>类型</TableHead>
+                    <TableHead>状态</TableHead>
+                    <TableHead>完成时间</TableHead>
+                    <TableHead>摘要</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sessions.slice(0, 6).map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-mono text-[12px] text-muted-foreground">
+                        {captureRecordLabel(s)}
+                      </TableCell>
+                      <TableCell className="text-[12.5px]">{captureTypeLabel(s.captureType)}</TableCell>
+                      <TableCell>
+                        <Badge variant={SESSION_STATUS_VARIANT[s.status] ?? "secondary"}>
+                          {SESSION_STATUS_LABEL[s.status] ?? s.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-[12px] text-muted-foreground">
+                        {s.finishedAt
+                          ? formatCaptureRecordTime(s.finishedAt)
+                          : formatCaptureRecordTime(s.startedAt)}
+                      </TableCell>
+                      <TableCell className="max-w-[380px] truncate text-[12px] text-muted-foreground">
+                        {summarizeSessionNote(s)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </UnitCard>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <LiveSessionCard
+            active={sessions.some((s) => s.status === "running")}
+            version={version}
+            fetched={0}
+            target={0}
+            elapsedLabel={latestCapture}
+          />
+          {(unboundCount > 0 || failedSessionCount > 0) && (
+            <UnitCard title="待办" tag="数据齐自动隐藏">
+              <div className="space-y-2">
+                {unboundCount > 0 && (
+                  <div className="flex items-center gap-3 rounded-lg border border-warning/40 bg-warning/[0.06] px-4 py-2.5">
+                    <AlertTriangle size={15} className="shrink-0 text-warning" />
+                    <span className="text-[13px]">
+                      <span className="font-medium tabular-nums">{unboundCount}</span> 位成员未绑定玩家
+                      <span className="ml-1.5 text-[12px] text-muted-foreground">绑定后才能做玩家维度分析</span>
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-auto h-7 text-[12px]"
+                      onClick={() => onNavigate("/alliance?tab=binding")}
+                    >
+                      去绑定
+                    </Button>
+                  </div>
+                )}
+                {failedSessionCount > 0 && (
+                  <div className="flex items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/[0.06] px-4 py-2.5">
+                    <AlertCircle size={15} className="shrink-0 text-destructive" />
+                    <span className="text-[13px]">
+                      <span className="font-medium tabular-nums">{failedSessionCount}</span> 次采集失败
+                      <span className="ml-1.5 text-[12px] text-muted-foreground">查看失败原因并可重试</span>
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-auto h-7 text-[12px]"
+                      onClick={() => onNavigate("/capture")}
+                    >
+                      去采集中心
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </UnitCard>
+          )}
+        </div>
+      </div>
 
       {/* ── 工作区管理：日常用得少，下沉到页面底部且视觉低调 ── */}
-      <section>
+      <section className="mt-4">
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-[12px] tracking-wide text-muted-foreground">工作区</h3>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -620,7 +588,7 @@ export const Dashboard = React.memo(function Dashboard() {
             </DialogContent>
           </Dialog>
         </div>
-        <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <div className="surface-card overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -659,6 +627,6 @@ export const Dashboard = React.memo(function Dashboard() {
           </Table>
         </div>
       </section>
-    </PageShell>
+    </div>
   );
 });

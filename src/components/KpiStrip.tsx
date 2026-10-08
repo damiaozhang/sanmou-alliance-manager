@@ -51,7 +51,10 @@ function KpiCell({ item }: { item: KpiItem }) {
 
 export function KpiStrip({ items }: { items: KpiItem[] }) {
   return (
-    <div className="surface-card mb-4 grid grid-cols-6 overflow-hidden">
+    <div
+      className="surface-card mb-4 grid overflow-hidden"
+      style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+    >
       {items.map((item) => (
         <KpiCell key={item.label} item={item} />
       ))}
