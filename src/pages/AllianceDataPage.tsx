@@ -28,7 +28,8 @@ import { ExportMenu } from "@/components/ExportMenu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableCell } from "@/components/ui/table";
+import { EnhancedTable } from "@/components/EnhancedTable";
 import { MembersTab } from "./alliance/MembersTab";
 import { WeeklyTab } from "./alliance/WeeklyTab";
 import { IntelTab } from "./alliance/IntelTab";
@@ -39,7 +40,7 @@ import { AlertsTab } from "./alliance/AlertsTab";
 import { BindingTab } from "./alliance/BindingTab";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
-import { PageShell } from "@/components/PageShell";
+import { PageHead } from "@/components/PageHead";
 
 type AllianceDataTabKey =
   "members" | "weekly" | "intel" | "cargo" | "logs" | "facilities" | "groups" | "alerts" | "binding";
@@ -233,30 +234,33 @@ export const AllianceDataPage = React.memo(function AllianceDataPage() {
   ];
 
   return (
-    <PageShell
-      description="成员、辎重、日志、设施与绑定的一页视图。"
-      actions={
-        <>
-          {/* 本页无采集触发回调（props 不含 onCapture），主操作跳采集中心发起——方案 R6「主操作采集数据」的可达实现 */}
-          <Button onClick={() => navigate(ROUTE_PATHS.capture)}>
-            <Play size={16} className="mr-2" />
-            采集数据
-          </Button>
-          <ExportMenu
-            items={[
-              { label: "JSON", onSelect: () => runExport(onExportJson) },
-              { label: "CSV", onSelect: () => runExport(onExportCsv) },
-              { label: "XLSX", onSelect: () => runExport(onExportXlsx) },
-              { label: "HTML", onSelect: () => runExport(onExportHtml) },
-              { label: "成员 CSV", onSelect: () => runExport(onExportMemberDataCsv) },
-            ]}
-            busy={exportBusy}
-          />
-        </>
-      }
-    >
+    <div className="p-5">
+      <PageHead
+        title="同盟数据"
+        description="成员、辎重、日志、设施与绑定的一页视图。"
+        actions={
+          <>
+            {/* 本页无采集触发回调（props 不含 onCapture），主操作跳采集中心发起——方案 R6「主操作采集数据」的可达实现 */}
+            <Button onClick={() => navigate(ROUTE_PATHS.capture)}>
+              <Play size={16} className="mr-2" />
+              采集数据
+            </Button>
+            <ExportMenu
+              items={[
+                { label: "JSON", onSelect: () => runExport(onExportJson) },
+                { label: "CSV", onSelect: () => runExport(onExportCsv) },
+                { label: "XLSX", onSelect: () => runExport(onExportXlsx) },
+                { label: "HTML", onSelect: () => runExport(onExportHtml) },
+                { label: "成员 CSV", onSelect: () => runExport(onExportMemberDataCsv) },
+              ]}
+              busy={exportBusy}
+            />
+          </>
+        }
+      />
+
       {/* KPI 条：一条 hairline 横排，不各自套卡（基调 §3/§4） */}
-      <section className="grid grid-cols-3 divide-x divide-border rounded-lg border border-border">
+      <section className="surface-card mb-4 grid grid-cols-3 divide-x divide-[var(--hair)] overflow-hidden">
         {kpis.map((item) => (
           <div key={item.label} className="px-4 py-3">
             <p className="text-xs tracking-wide text-muted-foreground">{item.label}</p>
@@ -342,30 +346,21 @@ export const AllianceDataPage = React.memo(function AllianceDataPage() {
               }
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>分组ID</TableHead>
-                  <TableHead>分组名</TableHead>
-                  <TableHead>同盟ID</TableHead>
-                  <TableHead>同盟名</TableHead>
-                  <TableHead>成员数</TableHead>
-                  <TableHead>采集时间</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {activeAllianceGroups.map((item) => (
-                  <TableRow key={`${item.groupId}-${item.legionId}-${item.observedAt}`}>
-                    <TableCell className="tabular-nums">{item.groupId || "-"}</TableCell>
-                    <TableCell>{item.groupName || "-"}</TableCell>
-                    <TableCell className="tabular-nums">{item.legionId || "-"}</TableCell>
-                    <TableCell>{item.legionName || "-"}</TableCell>
-                    <TableCell className="text-right tabular-nums">{item.memberCount || 0}</TableCell>
-                    <TableCell className="tabular-nums">{formatCaptureRecordTime(item.observedAt)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <EnhancedTable
+              columns={["分组ID", "分组名", "同盟ID", "同盟名", "成员数", "采集时间"]}
+              rows={activeAllianceGroups}
+              density="compact"
+              renderRow={(item) => (
+                <>
+                  <TableCell className="tabular-nums">{item.groupId || "-"}</TableCell>
+                  <TableCell>{item.groupName || "-"}</TableCell>
+                  <TableCell className="tabular-nums">{item.legionId || "-"}</TableCell>
+                  <TableCell>{item.legionName || "-"}</TableCell>
+                  <TableCell className="text-right tabular-nums">{item.memberCount || 0}</TableCell>
+                  <TableCell className="tabular-nums">{formatCaptureRecordTime(item.observedAt)}</TableCell>
+                </>
+              )}
+            />
           )}
         </TabsContent>
 
@@ -377,6 +372,6 @@ export const AllianceDataPage = React.memo(function AllianceDataPage() {
           <BindingTab bundle={bundle} onSaveBinding={onSaveBinding} onAutoBind={onAutoBind} />
         </TabsContent>
       </Tabs>
-    </PageShell>
+    </div>
   );
 });

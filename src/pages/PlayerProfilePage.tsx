@@ -14,7 +14,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { SuspenseFallback } from "@/components/SuspenseFallback";
-import { PageShell } from "@/components/PageShell";
+import { PageHead } from "@/components/PageHead";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -91,36 +91,37 @@ export const PlayerProfilePage = React.memo(function PlayerProfilePage({
 
   if (appError) {
     return (
-      <PageShell>
+      <div className="p-5">
         <Card>
           <CardContent className="pt-6">
             <ErrorState message={`玩家档案加载失败：${formatErrorMessage(appError)}`} />
           </CardContent>
         </Card>
-      </PageShell>
+      </div>
     );
   }
   if (appLoading && !bundle) {
     return (
-      <PageShell>
+      <div className="p-5">
         <SuspenseFallback variant="page" />
-      </PageShell>
+      </div>
     );
   }
 
   return (
-    <PageShell>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={onBack} title="返回">
-              <ArrowLeft size={18} />
-            </Button>
-            <User size={18} />
-            玩家档案
-          </CardTitle>
-        </CardHeader>
-      </Card>
+    <div className="p-5">
+      <PageHead
+        title="玩家档案"
+        description={
+          latestSnapshot ? `${latestSnapshot.avatarName} · ${latestSnapshot.legionName ?? "-"}` : undefined
+        }
+        actions={
+          <Button variant="outline" size="sm" onClick={onBack} title="返回">
+            <ArrowLeft size={14} />
+            返回
+          </Button>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -446,7 +447,7 @@ export const PlayerProfilePage = React.memo(function PlayerProfilePage({
           )}
         </CardContent>
       </Card>
-    </PageShell>
+    </div>
   );
 });
 

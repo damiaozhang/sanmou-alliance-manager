@@ -9,7 +9,7 @@ import { useExportActions } from "@/features/export/useExportActions";
 import { useTabUrl } from "@/hooks/useTabUrl";
 import { useUrlState } from "@/hooks/useUrlState";
 import { ExportMenu } from "@/components/ExportMenu";
-import { PageShell } from "@/components/PageShell";
+import { PageHead } from "@/components/PageHead";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutoLineupTab } from "./lineup/AutoLineupTab";
@@ -62,20 +62,21 @@ export const LineupHubPage = React.memo(function LineupHubPage() {
   }
 
   return (
-    <PageShell
-      title="阵容中心"
-      description="从自动识别到克制分析，在一个工作台中完成阵容研判。"
-      actions={
-        <ExportMenu
-          items={[
-            { label: "JSON", onSelect: () => runExport(onExportJson) },
-            { label: "CSV", onSelect: () => runExport(onExportCsv) },
-            { label: "HTML", onSelect: () => runExport(onExportHtml) },
-          ]}
-          busy={exportBusy}
-        />
-      }
-    >
+    <div className="p-5">
+      <PageHead
+        title="阵容中心"
+        description="从自动识别到克制分析，在一个工作台中完成阵容研判。"
+        actions={
+          <ExportMenu
+            items={[
+              { label: "JSON", onSelect: () => runExport(onExportJson) },
+              { label: "CSV", onSelect: () => runExport(onExportCsv) },
+              { label: "HTML", onSelect: () => runExport(onExportHtml) },
+            ]}
+            busy={exportBusy}
+          />
+        }
+      />
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as LineupTabKey)}>
         <TabsList className="w-full justify-start border-b border-border bg-transparent p-0">
           {tabs.map((tab) => {
@@ -114,6 +115,6 @@ export const LineupHubPage = React.memo(function LineupHubPage() {
       )}
       {activeTab === "matchup" && <MatchupTab matchups={lineupAnalysis.matchups} query={query} setQuery={setQuery} />}
       {activeTab === "winrate" && <WinRateTab lineupAnalysis={lineupAnalysis} />}
-    </PageShell>
+    </div>
   );
 });
