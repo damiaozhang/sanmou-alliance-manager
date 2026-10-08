@@ -51,6 +51,16 @@
     --brand-soft: 220 60% 97%;
     --brand-soft-foreground: 220 50% 36%;
     --panel: 220 20% 98%;
+    /* 表面分层（2026-10-09 电竞数据台 · 变体A） */
+    --surface-0: 220 20% 98%;
+    --surface-1: 0 0% 100%;
+    --surface-2: 220 16% 96%;
+    --surface-rail: 220 24% 12%;
+    --hair: rgba(20, 28, 44, 0.1);
+    --hair-strong: rgba(20, 28, 44, 0.18);
+    --inset-hi: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    --shadow-card: 0 1px 2px rgb(28 35 51 / 0.06), 0 4px 14px rgb(28 35 51 / 0.06);
+    --shadow-card-hover: 0 2px 4px rgb(28 35 51 / 0.08), 0 10px 26px rgb(28 35 51 / 0.12);
     /* SLG 战报语义色 */
     --victory: 142 70% 30%;
     --victory-foreground: 0 0% 100%;
@@ -115,6 +125,16 @@
     --brand-soft: 217 50% 18%;
     --brand-soft-foreground: 217 85% 70%;
     --panel: 220 20% 10%;
+    /* 表面分层（2026-10-09 电竞数据台 · 变体A，暗色版） */
+    --surface-0: 220 24% 5%;
+    --surface-1: 220 22% 8%;
+    --surface-2: 220 20% 12%;
+    --surface-rail: 220 30% 3%;
+    --hair: rgba(255, 255, 255, 0.07);
+    --hair-strong: rgba(255, 255, 255, 0.12);
+    --inset-hi: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.28);
+    --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.45), 0 14px 36px rgb(0 0 0 / 0.4);
     /* SLG 战报语义色 */
     --victory: 142 60% 45%;
     --victory-foreground: 0 0% 100%;
@@ -284,7 +304,25 @@
   }
 }
 
+/* 分层卡片材质（变体A）：surface-1 底 + 发丝边 + 顶部内发光 + 厚度投影；hover 抬升 */
+.surface-card {
+  background: hsl(var(--surface-1));
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card), var(--inset-hi);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.surface-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--hair-strong);
+  box-shadow: var(--shadow-card-hover), var(--inset-hi);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .surface-card,
+  .surface-card:hover {
+    transform: none;
+  }
   *,
   *::before,
   *::after {

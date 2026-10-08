@@ -69,6 +69,12 @@ export default {
           foreground: "hsl(var(--brand-soft-foreground))",
         },
         panel: "hsl(var(--panel))",
+        surface: {
+          0: "hsl(var(--surface-0))",
+          1: "hsl(var(--surface-1))",
+          2: "hsl(var(--surface-2))",
+          rail: "hsl(var(--surface-rail))",
+        },
         // 导航轨（重设计 2026-09-21）：深色侧栏专用色组，见 index.css --nav-*
         nav: {
           bg: "hsl(var(--nav-bg))",

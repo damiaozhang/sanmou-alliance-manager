@@ -10,7 +10,7 @@ function getStoredTheme(): "dark" | "light" {
   } catch {
     // localStorage unavailable — fall through
   }
-  return "light";
+  return "dark";
 }
 
 function applyTheme(theme: "dark" | "light") {
@@ -23,7 +23,7 @@ function applyTheme(theme: "dark" | "light") {
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<"dark" | "light">("light");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   // Initialize theme on mount
   useEffect(() => {
