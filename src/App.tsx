@@ -83,6 +83,7 @@ export function App() {
             onSelectWorkspace={handleSelectWorkspace}
             scanningActive={scanningActive}
             hasFailedCapture={hasFailedCapture}
+            sidecarOnline={collector?.available ?? false}
             lastCaptureAt={lastCaptureAt}
           />
         }
