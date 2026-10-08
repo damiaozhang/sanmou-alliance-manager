@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
   // V9：半透明底 + 描边 + 状态圆点（before 伪元素），variant 映射表不变
-  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 before:inline-block before:size-1.5 before:shrink-0 before:rounded-full before:bg-current",
+  "inline-flex items-center gap-1.5 rounded-[5px] border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 before:inline-block before:size-1.5 before:shrink-0 before:rounded-full before:bg-current",
   {
     variants: {
       variant: {
