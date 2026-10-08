@@ -1,14 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { Swords } from "lucide-react";
 import type { LineupStatRow, MemberSnapshotRow } from "../tauri";
 import type { SortState } from "@/lib/sort";
 import { useAppData, useMemberSnapshotsPaged } from "@/app/queries";
 import { useActiveWorkspaceContext } from "@/features/workspace/useActiveWorkspaceContext";
-import { MetricCard } from "@/components/MetricCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmptyTableRow } from "@/components/EmptyState";
-import { PageShell } from "@/components/PageShell";
+import { PageHead } from "@/components/PageHead";
 import { SortIndicator } from "@/components/SortIndicator";
 import { cn } from "@/lib/utils";
 import { buildLegionNameIndex, resolveLegionLabel } from "@/features/alliance/members";
@@ -150,97 +147,100 @@ export const AllianceRankingPage = React.memo(function AllianceRankingPage() {
   };
 
   return (
-    <PageShell>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Swords size={18} />
-            同盟战力排行
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <MetricCard label="总玩家数" value={totalPlayers} />
-            <MetricCard label="总场次" value={totalBattles.toLocaleString('zh-CN')} />
-            <MetricCard label="总武勋" value={totalMerit.toLocaleString('zh-CN')} />
-            <MetricCard label="平均胜率" value={avgWinRate} />
-          </div>
-          <p className="text-caption text-muted-foreground">点击表头按对应指标排序，再次点击切换升降序。</p>
-        </CardContent>
-      </Card>
+    <div className="p-5">
+      <PageHead
+        title="同盟战力排行"
+        description="按武勋、胜率、场次等指标对成员排序，点击表头切换排序方向。"
+      />
+      <section className="surface-card mb-4 grid grid-cols-2 divide-x divide-[var(--hair)] overflow-hidden md:grid-cols-4">
+        <div className="px-4 py-3">
+          <p className="text-xs tracking-wide text-muted-foreground">总玩家数</p>
+          <p className="mt-1 text-metric font-semibold tabular-nums">{totalPlayers}</p>
+        </div>
+        <div className="px-4 py-3">
+          <p className="text-xs tracking-wide text-muted-foreground">总场次</p>
+          <p className="mt-1 text-metric font-semibold tabular-nums">{totalBattles.toLocaleString('zh-CN')}</p>
+        </div>
+        <div className="px-4 py-3">
+          <p className="text-xs tracking-wide text-muted-foreground">总武勋</p>
+          <p className="mt-1 text-metric font-semibold tabular-nums">{totalMerit.toLocaleString('zh-CN')}</p>
+        </div>
+        <div className="px-4 py-3">
+          <p className="text-xs tracking-wide text-muted-foreground">平均胜率</p>
+          <p className="mt-1 text-metric font-semibold tabular-nums">{avgWinRate}</p>
+        </div>
+      </section>
 
-      <Card>
-        <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-14">排名</TableHead>
-                <TableHead>玩家</TableHead>
-                <TableHead>分组</TableHead>
-                {SORT_COLUMNS.map((col) => {
-                  const active = sort.key === col.key;
-                  return (
-                    <TableHead
-                      key={col.key}
-                      // P2-7：排序控件改为真正的 <button> 并补 aria-sort，
-                      // 让键盘/读屏用户也能排序（此前挂在 <th onClick> 上不可达）。
-                      aria-sort={active ? (sort.direction === "asc" ? "ascending" : "descending") : "none"}
-                      className={cn("whitespace-nowrap", col.align === "right" && "text-right")}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => toggle(col.key)}
-                        className={cn(
-                          "inline-flex cursor-pointer select-none items-center rounded-sm hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                          col.align === "right" && "w-full justify-end"
-                        )}
-                      >
-                        {col.label}
-                        <SortIndicator active={active} direction={sort.direction} />
-                      </button>
-                    </TableHead>
-                  );
-                })}
-                <TableHead>胜/负/平</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sorted.length === 0 ? (
-                <EmptyTableRow colSpan={10} title="暂无阵容统计数据。请先进行同盟战报采集。" />
-              ) : (
-                sorted.map((p, i) => (
-                  <TableRow key={p.avatarId || p.playerName}>
-                    <TableCell>
-                      {i < 3 ? (
-                        <strong className={cn(i === 0 ? "text-rank-legendary" : i === 1 ? "text-rank-elite" : "text-rank-advanced")}>{i + 1}</strong>
-                      ) : (
-                        i + 1
+      <div className="surface-card overflow-hidden">
+        <Table>
+          <TableHeader className="sticky top-0 z-10 bg-surface-2/80 backdrop-blur">
+            <TableRow>
+              <TableHead className="w-14">排名</TableHead>
+              <TableHead>玩家</TableHead>
+              <TableHead>分组</TableHead>
+              {SORT_COLUMNS.map((col) => {
+                const active = sort.key === col.key;
+                return (
+                  <TableHead
+                    key={col.key}
+                    // P2-7：排序控件改为真正的 <button> 并补 aria-sort，
+                    // 让键盘/读屏用户也能排序（此前挂在 <th onClick> 上不可达）。
+                    aria-sort={active ? (sort.direction === "asc" ? "ascending" : "descending") : "none"}
+                    className={cn("whitespace-nowrap", col.align === "right" && "text-right")}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggle(col.key)}
+                      className={cn(
+                        "inline-flex cursor-pointer select-none items-center rounded-sm hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        col.align === "right" && "w-full justify-end"
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <strong>{p.playerName}</strong>
-                      {p.allianceName && <span className="text-sm text-muted-foreground ml-1">{p.allianceName}</span>}
-                    </TableCell>
-                    <TableCell>{p.legion || "-"}</TableCell>
-                    <TableCell className="tabular-nums">{p.totalMerit > 0 ? p.totalMerit.toLocaleString('zh-CN') : "-"}</TableCell>
-                    <TableCell className="tabular-nums">{formatWinRate(p.wins, p.losses, p.draws)}</TableCell>
-                    <TableCell className="tabular-nums">{p.battles}</TableCell>
-                    <TableCell className="tabular-nums">{p.totalDamage > 0 ? p.totalDamage.toLocaleString('zh-CN') : "-"}</TableCell>
-                    <TableCell className="text-right tabular-nums">{p.lineupCount}</TableCell>
-                    <TableCell>
-                      <span className="text-victory">{p.wins}</span>
-                      {" / "}
-                      <span className="text-defeat">{p.losses}</span>
-                      {" / "}
-                      <span>{p.draws}</span>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </PageShell>
+                    >
+                      {col.label}
+                      <SortIndicator active={active} direction={sort.direction} />
+                    </button>
+                  </TableHead>
+                );
+              })}
+              <TableHead>胜/负/平</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sorted.length === 0 ? (
+              <EmptyTableRow colSpan={10} title="暂无阵容统计数据。请先进行同盟战报采集。" />
+            ) : (
+              sorted.map((p, i) => (
+                <TableRow key={p.avatarId || p.playerName}>
+                  <TableCell>
+                    {i < 3 ? (
+                      <strong className={cn(i === 0 ? "text-rank-legendary" : i === 1 ? "text-rank-elite" : "text-rank-advanced")}>{i + 1}</strong>
+                    ) : (
+                      i + 1
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <strong>{p.playerName}</strong>
+                    {p.allianceName && <span className="text-sm text-muted-foreground ml-1">{p.allianceName}</span>}
+                  </TableCell>
+                  <TableCell>{p.legion || "-"}</TableCell>
+                  <TableCell className="tabular-nums">{p.totalMerit > 0 ? p.totalMerit.toLocaleString('zh-CN') : "-"}</TableCell>
+                  <TableCell className="tabular-nums">{formatWinRate(p.wins, p.losses, p.draws)}</TableCell>
+                  <TableCell className="tabular-nums">{p.battles}</TableCell>
+                  <TableCell className="tabular-nums">{p.totalDamage > 0 ? p.totalDamage.toLocaleString('zh-CN') : "-"}</TableCell>
+                  <TableCell className="text-right tabular-nums">{p.lineupCount}</TableCell>
+                  <TableCell>
+                    <span className="text-victory">{p.wins}</span>
+                    {" / "}
+                    <span className="text-defeat">{p.losses}</span>
+                    {" / "}
+                    <span>{p.draws}</span>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 });

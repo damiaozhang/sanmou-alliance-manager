@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { BarChart3, Users, TrendingUp } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import type { MemberSnapshotRow, CrossWorkspacePowerPoint } from "../tauri";
 import { getCrossWorkspacePowerSeries, getComparisonStats } from "../tauri";
 import type { ComparisonWindow } from "@/features/comparison/windows";
@@ -7,14 +7,13 @@ import { deriveComparisonWindows, latestByKey } from "@/features/comparison/wind
 import { formatDeltaNumber } from "@/lib/format";
 import { useAppData, useAllMemberSnapshots } from "@/app/queries";
 import { useActiveWorkspaceContext } from "@/features/workspace/useActiveWorkspaceContext";
-import { MetricCard } from "@/components/MetricCard";
 import { TrendChart } from "@/components/charts";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DateRangeFilter } from "@/components/DateRangeFilter";
-import { PageShell } from "@/components/PageShell";
+import { PageHead } from "@/components/PageHead";
+import { UnitCard } from "@/components/UnitCard";
+import { EnhancedTable } from "@/components/EnhancedTable";
 import { ErrorState } from "@/components/ErrorState";
 
 type ComparisonRow = { label: string; current: string; previous: string; delta: string };
@@ -208,101 +207,79 @@ export const ComparisonPage = React.memo(function ComparisonPage() {
   }
 
   return (
-    <PageShell>
+    <div className="p-5">
+      <PageHead
+        title="时间对比"
+        description="对比两个时间窗口的采集量与成员变化，定位同盟增长或流失。"
+        actions={
+          <Button variant="outline" onClick={resetWindows}>
+            <BarChart3 size={16} className="mr-2" />
+            恢复默认窗口
+          </Button>
+        }
+      />
       {statsError ? (
         <ErrorState message={`对比数据加载失败：${statsError}。请确认工作区可用后重试。`} />
       ) : null}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 size={18} />
-            时间对比
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardContent className="pt-6 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Badge variant="default">当前窗口</Badge>
-                  <span className="text-sm">{currentWindowLabel}</span>
-                </div>
-                <DateRangeFilter from={currentFrom} to={currentTo} onFromChange={setCurrentFrom} onToChange={setCurrentTo} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">对照窗口</Badge>
-                  <span className="text-sm">{previousWindowLabel}</span>
-                </div>
-                <DateRangeFilter from={previousFrom} to={previousTo} onFromChange={setPreviousFrom} onToChange={setPreviousTo} />
-              </CardContent>
-            </Card>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={resetWindows}>
-              <BarChart3 size={16} className="mr-2" />
-              恢复默认窗口
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            口径说明：上表与高亮卡数字均为窗口内落库行数（SQL 单源 get_comparison_stats），
-            其中「成员快照」是快照行数而非去重人数；去重人数见下方「成员变化」（按成员去重）。
-          </p>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {currentHighlights.map((item) => (
-              <MetricCard key={item.label} label={item.label} value={item.current} hint={item.hint} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <UnitCard title="当前窗口" tag={currentWindowLabel}>
+          <DateRangeFilter from={currentFrom} to={currentTo} onFromChange={setCurrentFrom} onToChange={setCurrentTo} />
+        </UnitCard>
+        <UnitCard title="对照窗口" tag={previousWindowLabel}>
+          <DateRangeFilter from={previousFrom} to={previousTo} onFromChange={setPreviousFrom} onToChange={setPreviousTo} />
+        </UnitCard>
+      </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>指标</TableHead>
-                <TableHead>当前</TableHead>
-                <TableHead>上次</TableHead>
-                <TableHead>变化</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((row) => (
-                <TableRow key={row.label}>
-                  <TableCell>{row.label}</TableCell>
-                  <TableCell>{row.current}</TableCell>
-                  <TableCell>{row.previous}</TableCell>
-                  <TableCell>{row.delta}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users size={18} />
-            成员变化
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <MetricCard label="新入盟" value={String(memberChanges.joined.length)} hint="去重人数（按成员）" />
-            <MetricCard label="离盟" value={String(memberChanges.left.length)} hint="去重人数（按成员）" />
-            <MetricCard label="留存" value={String(memberChanges.retained.length)} hint="去重人数（按成员）" />
+      <section className="surface-card mb-4 grid grid-cols-2 divide-x divide-[var(--hair)] overflow-hidden md:grid-cols-4">
+        {currentHighlights.map((item) => (
+          <div key={item.label} className="px-4 py-3">
+            <p className="text-xs tracking-wide text-muted-foreground">{item.label}</p>
+            <p className="mt-1 text-metric font-semibold tabular-nums">{item.current}</p>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground" title={item.hint}>
+              {item.hint}
+            </p>
           </div>
+        ))}
+      </section>
+
+      <p className="mb-4 text-sm text-muted-foreground">
+        口径说明：上表与高亮卡数字均为窗口内落库行数（SQL 单源 get_comparison_stats），
+        其中「成员快照」是快照行数而非去重人数；去重人数见下方「成员变化」（按成员去重）。
+      </p>
+
+      <EnhancedTable
+        columns={["指标", "当前", "上次", "变化"]}
+        rows={rows}
+        density="compact"
+        renderRow={(row) => (
+          <>
+            <TableCell>{row.label}</TableCell>
+            <TableCell>{row.current}</TableCell>
+            <TableCell>{row.previous}</TableCell>
+            <TableCell>{row.delta}</TableCell>
+          </>
+        )}
+      />
+
+      <UnitCard className="mt-4" title="成员变化" tag="按成员去重">
+        <div className="mb-4 grid grid-cols-3 divide-x divide-[var(--hair)]">
+          <div className="px-4 py-2 first:pl-0">
+            <p className="text-xs text-muted-foreground">新入盟</p>
+            <p className="mt-0.5 text-metric font-semibold tabular-nums text-victory">{memberChanges.joined.length}</p>
+          </div>
+          <div className="px-4 py-2">
+            <p className="text-xs text-muted-foreground">离盟</p>
+            <p className="mt-0.5 text-metric font-semibold tabular-nums text-defeat">{memberChanges.left.length}</p>
+          </div>
+          <div className="px-4 py-2">
+            <p className="text-xs text-muted-foreground">留存</p>
+            <p className="mt-0.5 text-metric font-semibold tabular-nums">{memberChanges.retained.length}</p>
+          </div>
+        </div>
+        <div className="space-y-4">
           {memberChanges.joined.length > 0 && (
-            <Table>
+            <Table dense>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-victory">新入盟</TableHead>
@@ -324,7 +301,7 @@ export const ComparisonPage = React.memo(function ComparisonPage() {
             </Table>
           )}
           {memberChanges.left.length > 0 && (
-            <Table>
+            <Table dense>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-defeat">离盟</TableHead>
@@ -346,7 +323,7 @@ export const ComparisonPage = React.memo(function ComparisonPage() {
             </Table>
           )}
           {memberChanges.retained.length > 0 && (
-            <Table>
+            <Table dense>
               <TableHeader>
                 <TableRow>
                   <TableHead>留存成员</TableHead>
@@ -367,42 +344,31 @@ export const ComparisonPage = React.memo(function ComparisonPage() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </UnitCard>
 
       {powerByWorkspace.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp size={18} />
-              跨工作区战力趋势
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">各工作区周武勋总量随日期的变化趋势。</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {powerByWorkspace.map((ws) => {
-                const first = ws.points[0];
-                const last = ws.points[ws.points.length - 1];
-                return (
-                  <Card key={ws.id}>
-                    <CardContent className="pt-6">
-                      <TrendChart
-                        data={ws.points.map((p) => p.totalWeeklyMerit)}
-                        width={360}
-                        height={80}
-                        label={`${ws.name} · ${first?.date ?? ""} ~ ${last?.date ?? ""}`}
-                        currentValue={last?.totalWeeklyMerit ?? 0}
-                        color="hsl(var(--chart-1))"
-                      />
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        <UnitCard className="mt-4" title="跨工作区战力趋势" tag="周武勋总量">
+          <p className="mb-3 text-sm text-muted-foreground">各工作区周武勋总量随日期的变化趋势。</p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {powerByWorkspace.map((ws) => {
+              const first = ws.points[0];
+              const last = ws.points[ws.points.length - 1];
+              return (
+                <TrendChart
+                  key={ws.id}
+                  data={ws.points.map((p) => p.totalWeeklyMerit)}
+                  width={360}
+                  height={80}
+                  label={`${ws.name} · ${first?.date ?? ""} ~ ${last?.date ?? ""}`}
+                  currentValue={last?.totalWeeklyMerit ?? 0}
+                  color="hsl(var(--chart-1))"
+                />
+              );
+            })}
+          </div>
+        </UnitCard>
       )}
-    </PageShell>
+    </div>
   );
 });

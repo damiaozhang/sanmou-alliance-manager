@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DatabaseBackup, FolderOpen, MonitorDot, RotateCcw, Settings2 } from "lucide-react";
+import { DatabaseBackup, FolderOpen, RotateCcw } from "lucide-react";
 import type { BackupResult } from "../tauri";
 import { backupData, restoreData } from "../tauri";
 import { formatErrorMessage } from "@/lib/format";
@@ -8,11 +8,10 @@ import { useAppStore } from "@/store/appStore";
 import { useExportActions } from "@/features/export/useExportActions";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { ErrorState } from "@/components/ErrorState";
-import { PageShell } from "@/components/PageShell";
+import { PageHead } from "@/components/PageHead";
+import { UnitCard } from "@/components/UnitCard";
 import { DiagnosticsContent } from "./Diagnostics";
 
 export const SettingsPage = React.memo(function SettingsPage() {
@@ -80,92 +79,71 @@ export const SettingsPage = React.memo(function SettingsPage() {
   }
 
   return (
-    <PageShell>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings2 size={18} />
-            设置
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Settings2 size={18} />
-                导出目录
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="rounded-md border border-border px-3 py-2 text-sm">
+    <div className="p-5">
+      <PageHead
+        title="设置"
+        description="导出目录、数据备份与运行诊断。"
+      />
+      <div className="space-y-4">
+        <UnitCard title="导出目录" tag="导出文件落盘位置">
+          <div className="flex items-center justify-between gap-4 border-b border-[var(--hair)] py-2.5 last:border-b-0">
+            <div className="min-w-0">
+              <p className="text-[13px]">当前目录</p>
+              <p className="truncate text-[11.5px] text-muted-foreground" title={exportDirectory?.path ?? "-"}>
                 {exportDirectory?.path ?? "-"}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={() => void onPickExportDirectory()}>
-                  <FolderOpen size={16} className="mr-2" />
-                  选择目录
-                </Button>
-                <Button variant="outline" onClick={() => void onResetExportDirectory()}>
-                  <RotateCcw size={16} className="mr-2" />
-                  重置默认
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <Button onClick={() => void onPickExportDirectory()}>
+                <FolderOpen size={16} className="mr-2" />
+                选择目录
+              </Button>
+              <Button variant="outline" onClick={() => void onResetExportDirectory()}>
+                <RotateCcw size={16} className="mr-2" />
+                重置默认
+              </Button>
+            </div>
+          </div>
+        </UnitCard>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <DatabaseBackup size={18} />
-                数据备份
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={() => void handleBackup()} disabled={backupBusy}>
-                  <DatabaseBackup size={16} className="mr-2" />
-                  {backupBusy ? "备份中…" : "立即备份"}
+        <UnitCard title="数据备份" tag="覆盖前请确认备份可用">
+          <div className="flex items-center justify-between gap-4 border-b border-[var(--hair)] py-2.5">
+            <div className="min-w-0">
+              <p className="text-[13px]">立即备份</p>
+              <p className="text-[11.5px] text-muted-foreground">
+                {backupInfo
+                  ? `备份完成：${backupInfo.path}（${(backupInfo.bytes / 1024).toFixed(1)} KB）`
+                  : "将当前全部数据打包到备份目录。"}
+              </p>
+            </div>
+            <Button className="shrink-0" onClick={() => void handleBackup()} disabled={backupBusy}>
+              <DatabaseBackup size={16} className="mr-2" />
+              {backupBusy ? "备份中…" : "立即备份"}
+            </Button>
+          </div>
+          {backupError && <ErrorState message={backupError} />}
+          <div className="flex items-center justify-between gap-4 border-b border-[var(--hair)] py-2.5 last:border-b-0">
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px]">从备份恢复</p>
+              <div className="mt-1.5 flex gap-2">
+                <Input
+                  value={restoreDir}
+                  placeholder="备份目录路径"
+                  onChange={(event) => setRestoreDir(event.target.value)}
+                />
+                <Button className="shrink-0" variant="outline" onClick={requestRestore} disabled={restoreBusy}>
+                  {restoreBusy ? "恢复中…" : "确认恢复"}
                 </Button>
               </div>
-              {backupInfo && (
-                <p className="text-sm text-muted-foreground">
-                  备份完成：{backupInfo.path}（{(backupInfo.bytes / 1024).toFixed(1)} KB）
-                </p>
-              )}
-              {backupError && <ErrorState message={backupError} />}
-              <Separator />
-              <div className="space-y-2">
-                <p className="text-sm font-medium">从备份恢复</p>
-                <div className="flex gap-2">
-                  <Input
-                    value={restoreDir}
-                    placeholder="备份目录路径"
-                    onChange={(event) => setRestoreDir(event.target.value)}
-                  />
-                  <Button variant="outline" onClick={requestRestore} disabled={restoreBusy}>
-                    {restoreBusy ? "恢复中…" : "确认恢复"}
-                  </Button>
-                </div>
-                {restoreMessage && <p className="text-sm text-muted-foreground">{restoreMessage}</p>}
-                {restoreError && <ErrorState message={restoreError} />}
-              </div>
-            </CardContent>
-          </Card>
+              {restoreMessage && <p className="mt-1.5 text-[11.5px] text-muted-foreground">{restoreMessage}</p>}
+            </div>
+          </div>
+          {restoreError && <ErrorState message={restoreError} />}
+        </UnitCard>
 
-          {/* I6：诊断内容并入设置页（导航已移除独立诊断入口，/diagnostics 路由保留兼容） */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <MonitorDot size={18} />
-                运行诊断
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DiagnosticsContent summary={summary} collector={collector} bundle={bundle} onRefresh={onRefresh} />
-            </CardContent>
-          </Card>
-        </CardContent>
-      </Card>
+        {/* I6：诊断内容并入设置页（导航已移除独立诊断入口，/diagnostics 路由保留兼容） */}
+        <DiagnosticsContent summary={summary} collector={collector} bundle={bundle} onRefresh={onRefresh} />
+      </div>
 
       <ConfirmDialog
         open={restoreConfirmOpen}
@@ -176,6 +154,6 @@ export const SettingsPage = React.memo(function SettingsPage() {
         destructive
         onConfirm={() => void executeRestore()}
       />
-    </PageShell>
+    </div>
   );
 });
