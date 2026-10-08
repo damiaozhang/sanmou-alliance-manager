@@ -131,8 +131,38 @@ class AllianceDataRuntimeFlowTests(unittest.TestCase):
             {13: "测试军团甲", 7: "测试军团乙"},
         )
 
+    def test_extracts_legion_names_from_render_data_container(self) -> None:
+        # 新增能力：军团列表常常挂在 renderData / renderList 这类「渲染数组」下，
+        # 其路径不含 legion/group 字样（历史实测 UnionScheduleWndUI.legionList.N.renderData
+        # 才是完整军团列表的来源）。该路径必须能被识别，且成员对象（含 avatar*/power）
+        # 不得被误判成军团。
+        payload = {
+            "[number]1": {
+                "legionList": {
+                    "[number]1": {
+                        "renderData": {
+                            "[number]1": {"legionId": 1, "legionName": "默认分组", "memberNum": 64},
+                            "[number]2": {"legionId": 3, "legionName": "测试军团丙", "memberNum": 21},
+                        }
+                    }
+                }
+            },
+            "[number]2": {
+                "lastUnionMemberList": {
+                    "[number]1": {
+                        "id": 90000001001,
+                        "avatarName": "测试玩家甲",
+                        "legionId": 3,
+                        "power": 141282,
+                    }
+                }
+            },
+        }
 
-class MemberJoinLogsBoundaryTests(unittest.TestCase):
+        result = _extract_nslg_legion_names(payload)
+        self.assertEqual(result, {1: "默认分组", 3: "测试军团丙"})
+        # 成员对象含 avatarName/power，绝不能被当成军团。
+        self.assertNotIn(90000001001, result)
     """P0-2 边界：毫秒级 joinTs / 缺失字段 / 畸形 payload 不应让整单采集失败。"""
 
     def test_millisecond_join_ts_is_parsed_without_error(self) -> None:

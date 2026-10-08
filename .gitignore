@@ -79,3 +79,5 @@ Desktop.ini
 /verify_s16.py
 /scripts/analysis/
 /scripts/wrytest/
+# 一次性诊断脚本（含本机绝对路径，仅本地使用，不入公开仓库）
+/scripts/one-off/

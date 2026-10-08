@@ -53,7 +53,24 @@ struct CollectorRuntime {
     /// 是否有请求正在锁外等待 sidecar 响应；等待期间 `line_rx` 被暂时取出，
     /// 其它调用者（如 status 轮询）不得再发起请求。
     request_in_flight: bool,
+    /// 主动关闭原因。`reset()` / `stop_capture()` / `shutdown()` 会把它置位，
+    /// 使得正在等待的请求在读到 stdout EOF（`Disconnected`）时能区分
+    /// 「我们主动杀掉了 sidecar」与「sidecar 自己崩了」。
+    /// 若不记录，两者都只会表现为 `Disconnected` → 统一报成
+    /// "collector sidecar closed its stdout stream"，把主动停止误报为故障。
+    intentional_shutdown: Option<ShutdownCause>,
     active_child_id: Arc<Mutex<Option<u32>>>,
+}
+
+/// 主动结束 sidecar 的原因，用于给并发等待者生成准确的错误信息。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ShutdownCause {
+    /// 请求超时 / 出错后的自我重置（`request_until_reserved` 的 result.is_err()）。
+    ResetAfterError,
+    /// 用户显式点「停止采集」。
+    UserStop,
+    /// 应用退出。
+    Shutdown,
 }
 
 /// Spawn the long-lived stdout reader thread for a sidecar child. The thread
@@ -115,6 +132,7 @@ impl Collector {
                 stdin: None,
                 line_rx: None,
                 request_in_flight: false,
+                intentional_shutdown: None,
                 active_child_id: active_child_id.clone(),
             })),
             active_child_id,
@@ -216,7 +234,7 @@ impl Collector {
             // request_until 的持锁窗口互斥，消除"停止时恰好并发 spawn 新进程"
             // 导致的 sidecar 残留竞态。
             let mut runtime = self.inner.lock();
-            runtime.reset();
+            runtime.reset_with_cause(ShutdownCause::UserStop);
             return Ok(true);
         }
         // 无已注册 child_id 时同样阻塞持锁，确保与并发 spawn 窗口互斥；
@@ -233,7 +251,7 @@ impl Collector {
             kill_process_tree(child_id);
             *self.active_child_id.lock() = None;
         }
-        self.inner.lock().reset();
+        self.inner.lock().reset_with_cause(ShutdownCause::Shutdown);
     }
 
     /// Run a capture request against the sidecar. The busy flag is owned by
@@ -264,7 +282,25 @@ impl Collector {
         // 占位保证同一时刻只有一个请求持有 line_rx，避免互相 take 到 None 后
         // 触发 reset() 把对方的采集杀掉（P0-4）。
         self.reserve_request(Duration::from_secs(2))?;
-        self.request_until_reserved(command, payload, terminal_kinds, line_timeout)
+        let result = self.request_until_reserved(command, payload.clone(), terminal_kinds, line_timeout);
+
+        // 自愈重试：`start_capture` 报「sidecar 启动失败：closed its stdout stream」
+        // 的根因是**请求发起前 sidecar 的那条 stdout 管道就已经关闭**
+        // （进程刚崩 / 上一次 reset 留下死管道 / python 启动器偶发失败），
+        // 属于「偶发」型故障。这里在明确判定为「sidecar 侧管道已死」时，
+        // 重建 sidecar 并原样重试一次，避免用户看到瞬时失败。
+        if let Err(error) = &result {
+            if should_retry_with_fresh_sidecar(error) {
+                // 先把死掉的 sidecar 彻底清掉，再由下一次 request 重新拉起。
+                {
+                    let mut runtime = self.inner.lock();
+                    runtime.reset_quiet();
+                }
+                self.reserve_request(Duration::from_secs(2))?;
+                return self.request_until_reserved(command, payload, terminal_kinds, line_timeout);
+            }
+        }
+        result
     }
 
     /// 在锁内尝试占位一次请求；已有请求在飞行中则按 `wait` 轮询等待。
@@ -320,14 +356,23 @@ impl Collector {
         };
 
         // Phase 2（锁外）：基于 channel 等待终结事件，心跳/日志行会不断
-        // 刷新逐行超时，不会冻结其它需要 runtime 锁的调用者。
-        let result = await_sidecar_event(&line_rx, &request_id, terminal_kinds, line_timeout);
+        // 刷新逐行超时，不会冻结其它需要 runtime 锁的调用者。把 inner 句柄
+        // 传入，使 reader 在判断到 EOF 时能先查 `intentional_shutdown`，
+        // 区分「我们主动停掉 sidecar」与「sidecar 自己崩了」。
+        let result = await_sidecar_event(
+            &line_rx,
+            &request_id,
+            terminal_kinds,
+            line_timeout,
+            &self.inner,
+        );
 
         // Phase 3（持锁）：归还 channel（若 sidecar 在等待期间被
         // stop/reset 掉则丢弃旧 channel），并清除 in-flight 标记。
         {
             let mut runtime = self.inner.lock();
             runtime.request_in_flight = false;
+            let intentional = runtime.intentional_shutdown;
             if runtime.stdin.is_some() && runtime.line_rx.is_none() {
                 runtime.line_rx = Some(line_rx);
             } else {
@@ -336,12 +381,29 @@ impl Collector {
             if result.is_err() {
                 // 超时/断连时重置 runtime：杀掉进程树，下次请求重新拉起；
                 // reader 线程会随管道关闭自行退出。
-                runtime.reset();
+                // 若这次失败本身就是「主动关闭」造成的，则不要覆盖原因，
+                // 否则会把用户主动停止误标成故障重置。
+                if intentional.is_none() {
+                    runtime.reset();
+                }
             }
         }
 
         result
     }
+}
+
+/// 判断一次请求失败是否属于「sidecar 管道已死、重建后可自愈」的情形。
+/// 只有这类瞬时故障才值得自动重试；业务错误（如「正在处理其它请求」）
+/// 与真正的运行时错误不应重试。
+fn should_retry_with_fresh_sidecar(error: &AppError) -> bool {
+    let AppError::Message(text) = error else {
+        return false;
+    };
+    // 「closed its stdout stream」= 管道已关闭（未接 stderr 的 sidecar 崩溃
+    // 或遗留死管道）；「stdout unavailable」= child 还在但管道已被回收。
+    // 两者都可以通过重建 sidecar 恢复。
+    text.contains("closed its stdout stream") || text.contains("collector stdout unavailable")
 }
 
 /// 在 reader channel 上等待指定 request_id 的终结事件。逐行超时由
@@ -351,6 +413,7 @@ fn await_sidecar_event(
     request_id: &str,
     terminal_kinds: &[&str],
     line_timeout: Duration,
+    inner: &Arc<Mutex<CollectorRuntime>>,
 ) -> AppResult<SidecarEvent> {
     loop {
         let line = match line_rx.recv_timeout(line_timeout) {
@@ -361,8 +424,25 @@ fn await_sidecar_event(
                 ));
             }
             Err(RecvTimeoutError::Disconnected) => {
+                // 先看是不是我们主动把 sidecar 停掉了。主动停止时不应该
+                // 报成「sidecar 崩溃」，否则一次用户点「停止」或一次并发
+                // 重置都会让界面弹出「采集失败：sidecar closed its stdout
+                // stream」这种误导性错误。
+                let cause = inner.lock().intentional_shutdown;
                 return Err(AppError::Message(
-                    "collector sidecar closed its stdout stream".to_string(),
+                    match cause {
+                        Some(ShutdownCause::UserStop) => {
+                            "collector sidecar 已被停止（用户取消采集）".to_string()
+                        }
+                        Some(ShutdownCause::ResetAfterError) => {
+                            "collector sidecar 已被重置，请重新发起采集".to_string()
+                        }
+                        Some(ShutdownCause::Shutdown) => {
+                            "collector sidecar 已随应用退出而关闭".to_string()
+                        }
+                        None => "collector sidecar closed its stdout stream"
+                            .to_string(),
+                    },
                 ));
             }
         };
@@ -434,12 +514,21 @@ impl CollectorRuntime {
     fn ensure_running(&mut self) -> AppResult<()> {
         if let Some(child) = self.child.as_mut() {
             if child.try_wait()?.is_some() {
-                self.reset();
+                // 子进程是**自己退出**的，不是被我们主动停掉的 —— 这里不能
+                // 用 reset_with_cause 标成 ResetAfterError，否则下一次请求
+                // 会拿到「主动重置」的假原因，把真崩溃掩盖掉。
+                // 用 reset_quiet 只做清理、不写关闭原因。
+                self.reset_quiet();
             } else if self.stdin.is_some() && self.line_rx.is_some() {
                 return Ok(());
             }
         }
 
+        if self.child.is_none() {
+            // 即将拉起全新 sidecar：清掉上一次的关闭原因，避免陈旧原因
+            // 影响新进程上的错误归因。
+            self.intentional_shutdown = None;
+        }
         self.spawn_process()
     }
 
@@ -540,6 +629,28 @@ impl CollectorRuntime {
     }
 
     fn reset(&mut self) {
+        self.reset_with_cause(ShutdownCause::ResetAfterError);
+    }
+
+    /// 仅做清理，不写 `intentional_shutdown`。用于「子进程已自行退出」这类
+    /// 场景：此时真正的关闭原因是崩溃，不能归成主动重置。
+    fn reset_quiet(&mut self) {
+        let previous = self.intentional_shutdown.take();
+        self.reset_inner();
+        // 保留之前已记录的原因（若有），不被这次静默清理覆盖。
+        self.intentional_shutdown = previous;
+    }
+
+    /// 与 `reset()` 相同，但记录主动关闭原因，供并发等待者区分
+    /// 「主动停掉」与「sidecar 崩溃」。
+    fn reset_with_cause(&mut self, cause: ShutdownCause) {
+        if self.child.is_some() {
+            self.intentional_shutdown = Some(cause);
+        }
+        self.reset_inner();
+    }
+
+    fn reset_inner(&mut self) {
         if let Some(mut child) = self.child.take() {
             // P0-1：sidecar 会派生 frida 扫描子进程（runtime_probe 里的
             // Popen），只 kill 父进程会把扫描进程留成孤儿——而 reset() 恰好
@@ -559,6 +670,7 @@ impl CollectorRuntime {
     }
 
     fn stop_process(&mut self) -> bool {
+        self.intentional_shutdown = Some(ShutdownCause::UserStop);
         let Some(child) = self.child.as_mut() else {
             self.stdin = None;
             self.line_rx = None;
@@ -581,11 +693,34 @@ impl CollectorRuntime {
 
 #[cfg(test)]
 mod tests {
-    use super::Collector;
+    use super::{should_retry_with_fresh_sidecar, Collector};
+    use crate::error::AppError;
     use std::path::PathBuf;
     use std::sync::Mutex;
 
     static TEST_ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn retry_heuristic_only_matches_dead_pipe_failures() {
+        // 管道已死 / stdout 不可用 → 值得重建 sidecar 重试
+        assert!(should_retry_with_fresh_sidecar(&AppError::Message(
+            "collector sidecar closed its stdout stream".to_string()
+        )));
+        assert!(should_retry_with_fresh_sidecar(&AppError::Message(
+            "collector stdout unavailable".to_string()
+        )));
+        // 业务错误（如请求冲突）不应重试，避免放大副作用
+        assert!(!should_retry_with_fresh_sidecar(&AppError::Message(
+            "collector is busy with another request".to_string()
+        )));
+        assert!(!should_retry_with_fresh_sidecar(&AppError::Message(
+            "collector sidecar 已被停止（用户取消采集）".to_string()
+        )));
+        // 非 Message 变体一律不重试
+        assert!(!should_retry_with_fresh_sidecar(&AppError::Io(
+            std::io::Error::new(std::io::ErrorKind::Other, "boom")
+        )));
+    }
 
     struct EnvGuard {
         keys: Vec<&'static str>,
