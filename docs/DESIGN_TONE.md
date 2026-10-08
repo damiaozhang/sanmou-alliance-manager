@@ -1,5 +1,10 @@
 # 设计基调说明（S3 页面重设计 · 必读）
 
+> **部分取代说明（2026-10-09）：** 本文 §3 / §6 / §7 已被 2026-10-09 前端重构规格部分取代，
+> 见 `docs/superpowers/specs/2026-10-09-frontend-redesign-design.md` §2。
+> 新规格引入表面分层（surface-0/1/2/rail）、卡片 hover 微浮起与受控动效；
+> 与本文冲突处以新规格为准，其余章节（字阶、语义令牌纪律）仍然有效。
+
 > 定稿日期：2026-07-31。S3 所有页面重设计任务以此为准；与方案文档冲突处以此文件为准。
 > 本文件只做**用法纪律**，不新增设计令牌——S0/S1 已注册的语义令牌（victory/defeat/draw/side/rank/info/warning/success、text-metric、text-caption、tabular-nums）是唯一来源。
 
