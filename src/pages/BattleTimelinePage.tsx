@@ -16,7 +16,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { SuspenseFallback } from "@/components/SuspenseFallback";
 import { DateRangeFilter } from "@/components/DateRangeFilter";
-import { PageShell } from "@/components/PageShell";
+import { PageHead } from "@/components/PageHead";
+import { UnitCard } from "@/components/UnitCard";
 import { useUrlState } from "@/hooks/useUrlState";
 
 function timeOnly(value: string): string {
@@ -65,7 +66,7 @@ function TimelineDay({
         </span>
       </summary>
       <div className="border-t border-border/70">
-        <Table>
+        <Table dense>
           <TableHeader>
             <TableRow>
               <TableHead>时间</TableHead>
@@ -225,23 +226,25 @@ export const BattleTimelinePage = React.memo(function BattleTimelinePage() {
   }, [filtered]);
 
   return (
-    <PageShell
-      title="战报时间线"
-      description="按日期复盘胜负、对手与阵容变化，默认展开最近一天。"
-      toolbar={
-        <DateRangeFilter
-          from={dateFrom}
-          to={dateTo}
-          onFromChange={setDateFrom}
-          onToChange={setDateTo}
-          onReset={() => {
-            setDateFrom("");
-            setDateTo("");
-          }}
-        />
-      }
-    >
-      <section className="grid grid-cols-4 divide-x divide-border overflow-hidden rounded-lg border border-border bg-card">
+    <div className="p-5">
+      <PageHead
+        title="战报时间线"
+        description="按日期复盘胜负、对手与阵容变化，默认展开最近一天。"
+        actions={
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onFromChange={setDateFrom}
+            onToChange={setDateTo}
+            onReset={() => {
+              setDateFrom("");
+              setDateTo("");
+            }}
+          />
+        }
+      />
+
+      <section className="surface-card mb-4 grid grid-cols-4 divide-x divide-[var(--hair)] overflow-hidden">
         {[
           ["总场次", totalBattles, "text-foreground"],
           ["胜场", totalWins, "text-victory"],
@@ -256,15 +259,9 @@ export const BattleTimelinePage = React.memo(function BattleTimelinePage() {
       </section>
 
       {reportRows.length > 0 ? (
-        <section className="overflow-hidden rounded-lg border border-border bg-card">
-          <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <h3 className="text-[13px] font-medium">近 7 天战况</h3>
-            <span className="text-[11px] text-muted-foreground">柱形为场次 · 折线为胜率</span>
-          </div>
-          <div className="p-4">
-            <BattleWinRateChart battles={reportRows} days={7} />
-          </div>
-        </section>
+        <UnitCard className="mb-4" title="近 7 天战况" tag="柱形为场次 · 折线为胜率">
+          <BattleWinRateChart battles={reportRows} days={7} />
+        </UnitCard>
       ) : null}
 
       {reportRows.length >= 1000 ? (
@@ -280,7 +277,7 @@ export const BattleTimelinePage = React.memo(function BattleTimelinePage() {
       ) : groups.length === 0 ? (
         <EmptyState title="暂无战报数据。请先进行同盟战报采集，采集完成后这里会自动展示战报时间线。" />
       ) : (
-        <section className="overflow-hidden rounded-lg border border-border bg-card" aria-label="按日期分组的战报">
+        <section className="surface-card overflow-hidden" aria-label="按日期分组的战报">
           {groups.map((group, index) => (
             <TimelineDay
               key={group.date}
@@ -291,6 +288,6 @@ export const BattleTimelinePage = React.memo(function BattleTimelinePage() {
           ))}
         </section>
       )}
-    </PageShell>
+    </div>
   );
 });

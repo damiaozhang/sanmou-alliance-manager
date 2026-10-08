@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmptyTableRow } from "@/components/EmptyState";
-import { PageShell } from "@/components/PageShell";
+import { PageHead } from "@/components/PageHead";
 import { useAppData, useRefreshAppData } from "@/app/queries";
 import { useAppStore } from "@/store/appStore";
 
@@ -47,7 +47,7 @@ export function DiagnosticsContent({ summary, bundle, collector, onRefresh }: Di
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table dense>
             <TableHeader>
               <TableRow>
                 <TableHead>项目</TableHead>
@@ -114,7 +114,7 @@ export function DiagnosticsContent({ summary, bundle, collector, onRefresh }: Di
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table dense>
             <TableHeader>
               <TableRow>
                 <TableHead>任务</TableHead>
@@ -162,18 +162,12 @@ export const Diagnostics = React.memo(function Diagnostics() {
   const refreshAppData = useRefreshAppData();
   const onRefresh = () => refreshAppData(selectedWorkspaceId);
   return (
-    <PageShell>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MonitorDot size={18} />
-            运行状态
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DiagnosticsContent summary={summary} collector={collector} bundle={bundle} onRefresh={onRefresh} />
-        </CardContent>
-      </Card>
-    </PageShell>
+    <div className="p-5">
+      <PageHead
+        title="运行状态"
+        description="sidecar 运行时探测、快照计数与导出任务诊断。"
+      />
+      <DiagnosticsContent summary={summary} collector={collector} bundle={bundle} onRefresh={onRefresh} />
+    </div>
   );
 });

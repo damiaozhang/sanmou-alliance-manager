@@ -8,7 +8,7 @@ import { useCaptureSessionControls } from "@/features/capture/useCaptureSessionC
 import { useTabUrl } from "@/hooks/useTabUrl";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { PageShell } from "@/components/PageShell";
+import { PageHead } from "@/components/PageHead";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCaptureSessions } from "./capture/useCaptureSessions";
 import { ManualCaptureTab } from "./capture/ManualCaptureTab";
@@ -71,21 +71,23 @@ export const CaptureHubPage = React.memo(function CaptureHubPage() {
     }
   }, [clearOptimistic, onRefresh, stopCapture, stopPending]);
 
-  // PageShell 主操作与历史空态 CTA 共用同一个启动入口（每页恰 1 个 primary）
+  // 页头主操作与历史空态 CTA 共用同一个启动入口（每页恰 1 个 primary）
   const startAllianceCapture = useCallback(() => {
     void handleStart("alliance_data");
   }, [handleStart]);
 
   return (
-    <PageShell
-      description="数据采集：同盟快照（成员/设施/日志）为「单次采集」模式——点一次采集一轮，采完自动停止并记录；与战报采集（抓取游戏战报）相互独立。"
-      actions={
-        <Button disabled={collectorBusy || startPending} onClick={startAllianceCapture}>
-          <Play size={16} className="mr-2" />
-          采集同盟数据
-        </Button>
-      }
-    >
+    <div className="p-5">
+      <PageHead
+        title="同盟快照"
+        description="数据采集：同盟快照（成员/设施/日志）为「单次采集」模式——点一次采集一轮，采完自动停止并记录；与战报采集（抓取游戏战报）相互独立。"
+        actions={
+          <Button disabled={collectorBusy || startPending} onClick={startAllianceCapture}>
+            <Play size={16} className="mr-2" />
+            采集同盟数据
+          </Button>
+        }
+      />
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "manual" | "records" | "history")}>
         <TabsList>
           <TabsTrigger value="manual">单次采集</TabsTrigger>
@@ -130,6 +132,6 @@ export const CaptureHubPage = React.memo(function CaptureHubPage() {
           void handleStop();
         }}
       />
-    </PageShell>
+    </div>
   );
 });
