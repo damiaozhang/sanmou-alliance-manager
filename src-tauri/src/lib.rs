@@ -751,6 +751,10 @@ fn materialize_collector_assets(app_data_dir: &std::path::Path) -> AppResult<Pat
         include_str!("../../collector/flows/alliance_data.py"),
     )?;
     write_text_if_changed(
+        &flows_dir.join("alliance_intel.py"),
+        include_str!("../../collector/flows/alliance_intel.py"),
+    )?;
+    write_text_if_changed(
         &flows_dir.join("battle_passive.py"),
         include_str!("../../collector/flows/battle_passive.py"),
     )?;
@@ -877,5 +881,49 @@ mod ipc_contract_tests {
                 index + 1
             );
         }
+    }
+
+    /// materialize_collector_assets 是「逐个 include_str! 手写清单」，
+    /// 新增 collector/flows/*.py 时极易漏掉一行 —— 后果是 AppData 下缺模块，
+    /// 运行期才以 ModuleNotFoundError 爆出来（flows/alliance_intel.py 就漏过一次）。
+    /// 这里直接扫描 collector/flows 源码目录，保证清单与实际文件一一对应。
+    #[test]
+    fn materialize_covers_every_flow_module() {
+        let lib_source = include_str!("lib.rs");
+        let materialize_block = lib_source
+            .split("fn materialize_collector_assets")
+            .nth(1)
+            .expect("lib.rs 应包含 materialize_collector_assets");
+
+        // 已声明覆盖的 flows/*.py 文件名。只认 include_str!("../../collector/flows/xxx.py")
+        // 这种形态，避免把注释里出现的同名字符串也算进来。
+        const MARKER: &str = "include_str!(\"../../collector/flows/";
+        let mut covered: Vec<String> = materialize_block
+            .match_indices(MARKER)
+            .map(|(idx, needle)| {
+                let rest = &materialize_block[idx + needle.len()..];
+                let end = rest.find('"').expect("include_str! 路径应以 \" 收尾");
+                rest[..end].to_string()
+            })
+            .collect();
+        covered.sort();
+        covered.dedup();
+
+        // 仓库中真实存在的 flows/*.py（排除测试文件）
+        let flows_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../collector/flows");
+        let mut actual: Vec<String> = std::fs::read_dir(&flows_dir)
+            .unwrap_or_else(|err| panic!("无法读取 {}: {err}", flows_dir.display()))
+            .filter_map(|entry| entry.ok())
+            .map(|entry| entry.file_name().to_string_lossy().to_string())
+            .filter(|name| name.ends_with(".py") && !name.starts_with("test_"))
+            .collect();
+        actual.sort();
+
+        assert_eq!(
+            covered, actual,
+            "materialize_collector_assets 漏写或多余了 flows 模块。\n\
+             已覆盖={covered:?}\n实际存在={actual:?}\n\
+             新增 collector/flows/*.py 后，必须在 materialize_collector_assets 中补一行 include_str!。"
+        );
     }
 }
