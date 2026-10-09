@@ -28,7 +28,7 @@ from runtime_probe import RuntimeProbeError, probe_status, runtime_probe_enabled
 SCRIPT_DIR = Path(__file__).resolve().parent
 MANIFEST_PATH = SCRIPT_DIR / "collector_manifest.json"
 MANIFEST_VERSION = "2026-06-09"
-SIDECAR_VERSION = "1.0.3"
+SIDECAR_VERSION = "1.0.4"
 
 # Command-loop poll cadence while the stdin queue is empty. Only affects EOF
 # detection latency; pending commands are dispatched as soon as the reader
