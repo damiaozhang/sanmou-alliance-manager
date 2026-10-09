@@ -2,6 +2,7 @@
 node_modules/
 dist/
 coverage/
+/release/
 src-tauri/target/
 src-tauri/gen/
 src-tauri/cargo_test_out.txt
@@ -44,6 +45,7 @@ vite.config.ts.timestamp-*.mjs
 .cleanup-backup/
 .git-old-*/
 .workbuddy/
+.qoder/better-harness/
 .skills/
 .DS_Store
 Thumbs.db

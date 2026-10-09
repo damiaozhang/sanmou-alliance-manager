@@ -28,6 +28,7 @@ from runtime_probe import RuntimeProbeError, probe_status, runtime_probe_enabled
 SCRIPT_DIR = Path(__file__).resolve().parent
 MANIFEST_PATH = SCRIPT_DIR / "collector_manifest.json"
 MANIFEST_VERSION = "2026-06-09"
+SIDECAR_VERSION = "1.0.3"
 
 # Command-loop poll cadence while the stdin queue is empty. Only affects EOF
 # detection latency; pending commands are dispatched as soon as the reader
@@ -86,6 +87,7 @@ def handle_status(request_id: str | None) -> None:
                 "supports": ["status", "start_capture", "stop"],
                 "ocr": False,
                 "pdf": False,
+                "sidecarVersion": SIDECAR_VERSION,
                 "manifestVersion": MANIFEST.get("manifestVersion", MANIFEST_VERSION),
                 "manifestSource": str(MANIFEST_PATH),
                 "runtimeProbe": probe_status(),
@@ -304,7 +306,12 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     if hasattr(sys.stdin, "reconfigure"):
         sys.stdin.reconfigure(encoding="utf-8")
-    emit(SidecarEvent(type="hello", status="ready", message="collector sidecar online"))
+    emit(SidecarEvent(
+        type="hello",
+        status="ready",
+        message="collector sidecar online",
+        payload={"sidecarVersion": SIDECAR_VERSION, "manifestVersion": MANIFEST.get("manifestVersion", MANIFEST_VERSION)}
+    ))
 
     line_queue: queue.Queue[str | None] = queue.Queue()
     reader = threading.Thread(
@@ -379,10 +386,31 @@ def main() -> int:
                         message=f"unknown command: {command}",
                     )
                 )
+        except json.JSONDecodeError as exc:
+            # JSON 解析错误：提供行号位置和修复建议
+            emit(
+                SidecarEvent(
+                    type="error",
+                    requestId=request_id,
+                    status="error",
+                    message=f"JSON 解析失败 (位置 {exc.pos}): {exc.msg}",
+                    payload={"hint": "请确保发送的是合法的 JSON 对象", "line": line[:200]},
+                )
+            )
         except Exception as exc:  # Keep the sidecar alive for protocol errors.
             import traceback
             traceback.print_exc(file=sys.stderr)
-            emit(SidecarEvent(type="error", requestId=request_id, status="error", message=str(exc)))
+            # 提供异常类型和堆栈摘要，便于定位问题
+            error_type = type(exc).__name__
+            emit(
+                SidecarEvent(
+                    type="error",
+                    requestId=request_id,
+                    status="error",
+                    message=f"{error_type}: {exc}",
+                    payload={"errorType": error_type, "sidecarVersion": SIDECAR_VERSION},
+                )
+            )
     return 0
 
 
